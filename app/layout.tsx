@@ -1,25 +1,32 @@
 import type { Metadata } from "next";
-import { Josefin_Sans, Playfair_Display, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
 // Echoes Sans y Noe Text (tipografías propietarias de Iberostar) sustituidas por
-// Josefin Sans (UI) y Playfair Display (titulares) de Google Fonts.
-const josefin = Josefin_Sans({
+// Josefin Sans (UI) y Playfair Display (titulares), de Google Fonts (licencia
+// OFL). Se sirven desde app/fonts (fuentes variables, subconjunto latin) en vez
+// de next/font/google, para que el build no dependa de descargar las fuentes
+// (fallaba en Heroku).
+const josefin = localFont({
+  src: "./fonts/josefin-sans-latin.woff2",
   variable: "--font-josefin",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: "100 700",
+  display: "swap",
 });
 
-const playfair = Playfair_Display({
+const playfair = localFont({
+  src: "./fonts/playfair-display-latin.woff2",
   variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: "400 900",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "./fonts/geist-mono-latin.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: "100 900",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
