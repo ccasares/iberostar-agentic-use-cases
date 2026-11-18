@@ -1,0 +1,7 @@
+{
+  "_comment": "Single source of truth for use-case tags shown as filter chips on the landing page. 'default' applies to every scenario not listed in 'overrides'. To tag a scenario, add its slug under 'overrides' with the full list of tags, e.g. \"transformer-health-twin\": [\"general\", \"MuleSoft\"]. Tags are case-sensitive labels.",
+  "default": [
+    "hospitality"
+  ],
+  "overrides": {}
+}

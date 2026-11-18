@@ -1,0 +1,171 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.18 0.01 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.01 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.01 250);
+
+  /* Customer brand primary — replace in the rebrand step */
+  --primary: oklch(0.281 0.092 254.9);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.96 0.005 250);
+  --secondary-foreground: oklch(0.22 0.02 255);
+  --muted: oklch(0.96 0.005 250);
+  --muted-foreground: oklch(0.5 0.02 255);
+  --accent: oklch(0.95 0.01 255);
+  --accent-foreground: oklch(0.22 0.02 255);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.9 0.005 255);
+  --input: oklch(0.9 0.005 255);
+  --ring: oklch(0.281 0.092 254.9);
+
+  --chart-1: oklch(0.281 0.092 254.9);
+  --chart-2: oklch(0.760 0.127 179.9);
+  --chart-3: oklch(0.65 0.15 160);
+  --chart-4: oklch(0.7 0.16 70);
+  --chart-5: oklch(0.55 0.2 300);
+
+  --radius: 4px;
+
+  /* Brand tokens — replace per-customer in the rebrand step */
+  --brand-primary: #002855;
+  --brand-surface: #002855;
+  --brand-surface-alt: #1f4269;
+  --brand-accent: #34cbb4;
+}
+
+.dark {
+  --background: oklch(0.218 0.067 253.0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.25 0.07 253);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.25 0.07 253);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.760 0.127 179.9);
+  --primary-foreground: oklch(0.218 0.067 253.0);
+  --secondary: oklch(0.30 0.06 253);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(0.27 0.01 250);
+  --muted-foreground: oklch(0.7 0.01 250);
+  --accent: oklch(0.3 0.01 250);
+  --accent-foreground: oklch(0.97 0 0);
+  --destructive: oklch(0.62 0.22 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.3 0.01 250);
+  --input: oklch(0.3 0.01 250);
+  --ring: oklch(0.760 0.127 179.9);
+}
+
+@theme inline {
+  --font-sans: var(--font-josefin), system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Markdown rendering for use case overview */
+.prose-brand {
+  @apply text-sm leading-relaxed text-foreground;
+}
+.prose-brand h1 {
+  @apply text-2xl font-bold mt-6 mb-3;
+}
+.prose-brand h2 {
+  @apply text-lg font-semibold mt-6 mb-2 pb-1 border-b border-border;
+}
+.prose-brand h3 {
+  @apply text-base font-semibold mt-4 mb-2;
+}
+.prose-brand p {
+  @apply my-3 text-muted-foreground;
+}
+.prose-brand ul {
+  @apply my-3 ml-5 list-disc space-y-1 text-muted-foreground;
+}
+.prose-brand ol {
+  @apply my-3 ml-5 list-decimal space-y-1 text-muted-foreground;
+}
+.prose-brand li {
+  @apply pl-1;
+}
+.prose-brand code {
+  @apply rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground;
+}
+.prose-brand strong {
+  @apply font-semibold text-foreground;
+}
+.prose-brand a {
+  @apply text-primary underline underline-offset-2;
+}
+.prose-brand table {
+  @apply my-4 w-full border-collapse overflow-hidden rounded-lg border border-border text-sm;
+}
+.prose-brand thead {
+  @apply bg-secondary;
+}
+.prose-brand th {
+  @apply border border-border px-3 py-2 text-left font-semibold text-foreground;
+}
+.prose-brand td {
+  @apply border border-border px-3 py-2 align-top text-muted-foreground;
+}
+.prose-brand tbody tr:nth-child(even),
+.prose-brand tbody tr:nth-child(even) {
+  @apply bg-muted/40;
+}
+
+.font-brand-serif {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+.brand-grid-bg {
+  background-color: var(--brand-surface);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}

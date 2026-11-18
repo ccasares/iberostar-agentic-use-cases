@@ -1,0 +1,1746 @@
+{
+  "generatedAt": "2026-11-18T10:34:58.071Z",
+  "count": 10,
+  "useCases": [
+    {
+      "slug": "conserje-digital-huesped",
+      "title": "Conserje digital del huésped",
+      "shortDescription": "Conserje digital para los 8,1 millones de huéspedes anuales de Iberostar Beachfront Resorts. Un único\npunto de contacto, antes y durante la estancia, que entiende peticiones mezcladas (llegada tardía, cena a\nla carta, una alergia, un aire acondicionado que no enfría) y las resuelve en el PMS, la agenda de\nservicios, housekeeping y la matriz de alérgenos del hotel.",
+      "persona": "Huésped vacacional de resort (familias, parejas, adultos)",
+      "businessPain": "Las peticiones de preestancia y estancia (restaurantes a la carta, spa, alérgenos, incidencias) se reparten entre recepción, PMS y apps, y los 8,1 M de clientes anuales esperan respuesta inmediata (brief §1, §5).",
+      "orchestration": "Enrutamiento por intención: el broker clasifica la petición y la ejecuta en varios sistemas operativos del hotel en paralelo.",
+      "exampleQueries": [
+        {
+          "label": "Llegada completa",
+          "query": ": Para la reserva IBS-7741203 del Iberostar Selection Paraíso Maya, del 12 al 19 de diciembre de 2026, apunta llegada a las 23:30 con cuna, dime qué upgrades hay por menos de 100 USD por noche y qué documentos faltan para el check-in online."
+        },
+        {
+          "label": "Cena segura para una celíaca",
+          "query": ": Registra celiaquía para la menor de la reserva IBS-7741203, dime qué platos sin gluten hay hoy en la cena del buffet y reserva el japonés Kyoto mañana 18/11/2026 a las 20:30 para 4 personas."
+        },
+        {
+          "label": "Incidencia con SLA incumplido",
+          "query": ": El aire acondicionado de la habitación 3214 del Iberostar Selection Paraíso Maya (reserva IBS-7741203) no enfría; abre la incidencia de climatización, dame el estado de INC-58213 y, si el SLA de 45 minutos está superado, registra un cambio de habitación como compensación de hasta 120 USD."
+        },
+        {
+          "label": "Agenda y cambio de servicio",
+          "query": ": Envíame la agenda completa de la reserva IBS-7741203, cambia la cena SRV-30117 de las 20:30 a las 21:30 y cancela el masaje SRV-30245 del 21/11/2026 sin penalización."
+        },
+        {
+          "label": "Experiencias Wave of Change para la familia",
+          "query": ": Para la reserva IBS-7752210 en el Iberostar Selection Bávaro (2 adultos y un niño de 6 años), recomiéndanos experiencias Wave of Change esta semana, reserva 4 plazas en la plantación de manglares del sábado 21/11/2026 y resume el impacto de nuestra estancia."
+        },
+        {
+          "label": "Alergia al marisco en un restaurante a la carta",
+          "query": ": Para la reserva de servicio SRV-30117 en Kyoto hoy a las 21:30, un comensal es alérgico a crustáceos y moluscos; consulta la ficha del ceviche de dorada en MX-CUN y envía la alerta APPCC al chef."
+        }
+      ],
+      "description": "Conserje digital para los 8,1 millones de huéspedes anuales de Iberostar Beachfront Resorts. Un único\npunto de contacto, antes y durante la estancia, que entiende peticiones mezcladas (llegada tardía, cena a\nla carta, una alergia, un aire acondicionado que no enfría) y las resuelve en el PMS, la agenda de\nservicios, housekeeping y la matriz de alérgenos del hotel.",
+      "purpose": "Las peticiones del huésped se reparten hoy entre recepción, el PMS, apps y teléfono, y cada departamento\nve solo su parte. Este caso de uso une los sistemas operativos del resort detrás de un broker que\nclasifica la intención, llama en paralelo a los agentes especializados y devuelve una sola respuesta,\ncumpliendo el Reglamento (UE) 1169/2011 de información sobre alérgenos.",
+      "readme": "# Conserje digital del huésped — `conserje-digital-huesped-broker-iberostar`\n\n## Description\nConserje digital para los 8,1 millones de huéspedes anuales de Iberostar Beachfront Resorts. Un único\npunto de contacto, antes y durante la estancia, que entiende peticiones mezcladas (llegada tardía, cena a\nla carta, una alergia, un aire acondicionado que no enfría) y las resuelve en el PMS, la agenda de\nservicios, housekeeping y la matriz de alérgenos del hotel.\n\n## Purpose\nLas peticiones del huésped se reparten hoy entre recepción, el PMS, apps y teléfono, y cada departamento\nve solo su parte. Este caso de uso une los sistemas operativos del resort detrás de un broker que\nclasifica la intención, llama en paralelo a los agentes especializados y devuelve una sola respuesta,\ncumpliendo el Reglamento (UE) 1169/2011 de información sobre alérgenos.\n\n## Goals\n- Resolver al primer contacto el 80 % de las peticiones de preestancia y estancia.\n- Reducir el tiempo de respuesta a incidencias de habitación y avisar antes de que se incumpla el SLA.\n- Garantizar que toda recomendación gastronómica respete las dietas y alergias registradas.\n- Aumentar la venta de upgrades y servicios de spa sin presión comercial.\n- Dar visibilidad a las experiencias Wave of Change durante la estancia.\n\n## Audience / Users\n- **Primary persona:** Huésped vacacional de resort (familias, parejas y adultos en todo incluido).\n- **Secondary users:** Recepción, guest relations, housekeeping, mantenimiento y jefes de cocina.\n\n## Architecture components\n\n### Broker (YAML-only)\n- `conserje-digital-huesped-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `conserje-dig-preestancia-agent-iberostar` | Preparación de la llegada y preferencias | resumen-reserva, preferencias-llegada, oferta-upgrade, checkin-online |\n| `conserje-dig-reservas-servicios-agent-iberostar` | Reservas de restaurantes a la carta, spa y actividades | reserva-restaurante, reserva-spa, reserva-actividad, modificar-cancelar, agenda-estancia |\n| `conserje-dig-incidencias-agent-iberostar` | Apertura y seguimiento de incidencias en habitación | abrir-incidencia, seguimiento-incidencia, compensacion-servicio |\n| `conserje-dig-alergenos-agent-iberostar` | Dietas, alergias e intolerancias | platos-seguros, registrar-dieta, aviso-cocina, ficha-alergenos-plato |\n| `conserje-dig-experiencias-woc-agent-iberostar` | Experiencias Wave of Change | recomendar-experiencia, reservar-voluntariado, impacto-estancia |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `conserje-dig-pms-estancias-mcp-iberostar` | Estancias, perfiles y folios del PMS | get_stay, search_stays_by_guest, update_guest_preferences, get_upgrade_options, get_checkin_status |\n| `conserje-dig-actividades-servicios-mcp-iberostar` | Agenda de restaurantes, spa y actividades | check_service_availability, book_service, modify_service_booking, list_stay_agenda |\n| `conserje-dig-housekeeping-mcp-iberostar` | Órdenes de housekeeping y mantenimiento ligero | create_room_incident, get_incident_status, record_compensation |\n| `conserje-dig-menus-alergenos-mcp-iberostar` | Cartas, escandallos y matriz de alérgenos | get_menu_allergen_matrix, get_dish_sheet, register_dietary_need, send_kitchen_alert |\n\n### Shared infrastructure\n- LLM provider: `open-ai-conserje-dig-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/conserje-digital-huesped-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **Llegada completa** (conserje-dig-preestancia → conserje-dig-pms-estancias): Para la reserva IBS-7741203 del Iberostar Selection Paraíso Maya, del 12 al 19 de diciembre de 2026, apunta llegada a las 23:30 con cuna, dime qué upgrades hay por menos de 100 USD por noche y qué documentos faltan para el check-in online.\n2. **Cena segura para una celíaca** (conserje-dig-alergenos → conserje-dig-menus-alergenos, conserje-dig-reservas-servicios → conserje-dig-actividades-servicios): Registra celiaquía para la menor de la reserva IBS-7741203, dime qué platos sin gluten hay hoy en la cena del buffet y reserva el japonés Kyoto mañana 18/11/2026 a las 20:30 para 4 personas.\n3. **Incidencia con SLA incumplido** (conserje-dig-incidencias → conserje-dig-housekeeping): El aire acondicionado de la habitación 3214 del Iberostar Selection Paraíso Maya (reserva IBS-7741203) no enfría; abre la incidencia de climatización, dame el estado de INC-58213 y, si el SLA de 45 minutos está superado, registra un cambio de habitación como compensación de hasta 120 USD.\n4. **Agenda y cambio de servicio** (conserje-dig-reservas-servicios → conserje-dig-actividades-servicios): Envíame la agenda completa de la reserva IBS-7741203, cambia la cena SRV-30117 de las 20:30 a las 21:30 y cancela el masaje SRV-30245 del 21/11/2026 sin penalización.\n5. **Experiencias Wave of Change para la familia** (conserje-dig-experiencias-woc → conserje-dig-actividades-servicios): Para la reserva IBS-7752210 en el Iberostar Selection Bávaro (2 adultos y un niño de 6 años), recomiéndanos experiencias Wave of Change esta semana, reserva 4 plazas en la plantación de manglares del sábado 21/11/2026 y resume el impacto de nuestra estancia.\n6. **Alergia al marisco en un restaurante a la carta** (conserje-dig-alergenos → conserje-dig-menus-alergenos): Para la reserva de servicio SRV-30117 en Kyoto hoy a las 21:30, un comensal es alérgico a crustáceos y moluscos; consulta la ficha del ceviche de dorada en MX-CUN y envía la alerta APPCC al chef.\n\n## Orchestration narrative\nEl broker clasifica cada mensaje por intención (preestancia, servicios, incidencias, dietas o Wave of\nChange) y, si el huésped mezcla varias, la divide y llama a los agentes especializados en paralelo. Cada\nagente consulta el MCP de su sistema: el PMS para la estancia, la agenda de servicios para reservas y\nexperiencias, housekeeping para incidencias y la matriz de alérgenos para la comida. Antes de reservar un\nrestaurante a un huésped con dieta registrada, el broker consulta siempre la matriz de alérgenos. Las\nrespuestas se reúnen en un único mensaje en español con códigos de reserva y próximos pasos.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-conserje-dig-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "conserje-digital-huesped-broker-iberostar",
+        "brokerLabel": "Conserje digital del huésped – Agent Network",
+        "brokerDescription": "Conserje digital para los huéspedes de Iberostar Beachfront Resorts. Clasifica cada petición de preestancia o estancia y la resuelve en el PMS, la agenda de servicios, housekeeping y la matriz de alérgenos del hotel.",
+        "brokerUrlTemplate": "${ingressgw.url}/conserje-digital-huesped-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa conserje-dig-preestancia-agent-iberostar con conserje-dig-pms-estancias-mcp-iberostar para resúmenes de reserva, preferencias, upgrades y check-in online.",
+          "Usa conserje-dig-reservas-servicios-agent-iberostar con conserje-dig-actividades-servicios-mcp-iberostar para reservar, cambiar o cancelar restaurantes, spa y actividades, y para la agenda de la estancia.",
+          "Usa conserje-dig-incidencias-agent-iberostar con conserje-dig-housekeeping-mcp-iberostar para incidencias de habitación, seguimiento de SLA y compensaciones.",
+          "Usa conserje-dig-alergenos-agent-iberostar con conserje-dig-menus-alergenos-mcp-iberostar para dietas, alergias, fichas de platos y alertas a cocina.",
+          "Usa conserje-dig-experiencias-woc-agent-iberostar con conserje-dig-actividades-servicios-mcp-iberostar para experiencias Wave of Change e impacto de la estancia.",
+          "Cuando una petición mezcle varias intenciones, divídela y llama a los agentes necesarios en paralelo; después devuelve una única respuesta al huésped.",
+          "Antes de recomendar un restaurante a un huésped con dieta registrada, consulta siempre la matriz de alérgenos."
+        ],
+        "skills": [
+          {
+            "id": "preparar-llegada",
+            "name": "Preparar la llegada",
+            "description": "Resume la reserva, registra preferencias y hora de llegada, ofrece upgrades y deja listo el check-in online.",
+            "examples": [
+              "Llegamos el 12 de diciembre a las 23:30 al Iberostar Selection Paraíso Maya con la reserva IBS-7741203, necesitamos cuna y queremos ver opciones de upgrade",
+              "¿Qué me falta para completar el check-in online de la reserva IBS-7752210?"
+            ],
+            "tags": [
+              "preestancia",
+              "upgrade",
+              "check-in"
+            ]
+          },
+          {
+            "id": "reservar-servicios",
+            "name": "Reservar servicios del resort",
+            "description": "Reserva, modifica o cancela restaurantes a la carta, spa, actividades y experiencias Wave of Change y devuelve la agenda consolidada.",
+            "examples": [
+              "Reserva el japonés Kyoto mañana a las 20:30 para 4 y apúntanos al vivero de coral del jueves, reserva IBS-7741203",
+              "Envíame la agenda de mi estancia IBS-7752210"
+            ],
+            "tags": [
+              "restaurantes",
+              "spa",
+              "actividades"
+            ]
+          },
+          {
+            "id": "resolver-incidencias",
+            "name": "Resolver incidencias de habitación",
+            "description": "Abre la incidencia en housekeeping o mantenimiento, hace seguimiento del SLA y propone compensación cuando se incumple.",
+            "examples": [
+              "El aire de la habitación 3214 no enfría desde esta mañana, reserva IBS-7741203",
+              "La incidencia INC-58213 lleva 5 horas abierta, ¿qué compensación ofrecemos?"
+            ],
+            "tags": [
+              "incidencias",
+              "sla",
+              "compensacion"
+            ]
+          },
+          {
+            "id": "dietas-alergenos",
+            "name": "Dietas y alérgenos",
+            "description": "Registra dietas y alergias, indica platos seguros según la matriz del Reglamento 1169/2011 y avisa a cocina.",
+            "examples": [
+              "Mi hija es celíaca, regístralo en la reserva IBS-7741203 y dime qué puede cenar hoy en el buffet",
+              "Esta noche cena en Kyoto un alérgico al marisco, avisa a cocina de la reserva SRV-30117"
+            ],
+            "tags": [
+              "alergenos",
+              "dietas",
+              "cocina"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "conserje-dig-preestancia-agent-iberostar",
+            "label": "Preestancia",
+            "platform": "agentforce",
+            "protocol": "a2a"
+          },
+          {
+            "name": "conserje-dig-reservas-servicios-agent-iberostar",
+            "label": "Reservas de servicios",
+            "platform": "openai",
+            "protocol": "a2a"
+          },
+          {
+            "name": "conserje-dig-incidencias-agent-iberostar",
+            "label": "Incidencias",
+            "platform": "claude platform",
+            "protocol": "a2a"
+          },
+          {
+            "name": "conserje-dig-alergenos-agent-iberostar",
+            "label": "Dietas y alérgenos",
+            "platform": "microsoft copilot",
+            "protocol": "a2a"
+          },
+          {
+            "name": "conserje-dig-experiencias-woc-agent-iberostar",
+            "label": "Experiencias Wave of Change",
+            "platform": "vertex ai",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "conserje-dig-pms-estancias-mcp-iberostar",
+            "label": "PMS – Estancias",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "conserje-dig-actividades-servicios-mcp-iberostar",
+            "label": "Agenda de servicios",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "conserje-dig-housekeeping-mcp-iberostar",
+            "label": "Housekeeping",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "conserje-dig-menus-alergenos-mcp-iberostar",
+            "label": "Menús y alérgenos",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    },
+    {
+      "slug": "revenue-mix-canales",
+      "title": "Revenue y mix de canales IHG / directo / W2M",
+      "shortDescription": "Asistente de revenue y distribución para los ~80 resorts de Iberostar Beachfront Resorts. El revenue\nmanager fija cada día tarifa y cupos de cada hotel en cuatro canales con economía muy distinta: la venta\ndirecta en iberostar.com, el canal IHG (alianza desde 2022, hasta 70 resorts distribuidos por IHG y su\nprograma IHG One Rewards), W2M y las OTA. Este caso de uso reúne previsión de demanda, paridad y coste\nneto por canal en una sola recomendación que el revenue manager aprueba antes de publicarla en el CRS.",
+      "persona": "Revenue manager / distribución",
+      "businessPain": "Fijar precio y cupos por canal (venta directa, IHG, W2M, OTA) con comisiones distintas y obligaciones de paridad (brief §1, §5).",
+      "orchestration": "Fan-out paralelo a demanda, paridad y coste de canal, con síntesis y aprobación final del revenue manager.",
+      "exampleQueries": [
+        {
+          "label": "Propuesta de Navidad en Riviera Maya",
+          "query": ": Para el Iberostar Selection Paraíso Maya (MX-PMA), doble estándar DBL-STD en todo incluido para 2 adultos, del 20/12/2026 al 06/01/2027, dame la previsión de ocupación, el pick-up de los últimos 7 días frente a 2025, la paridad entre iberostar.com, IHG, W2M y OTA del 27/12/2026, el ADR neto por canal de diciembre de 2026 y prepara la propuesta de BAR, cupos y estancia mínima para aprobar."
+        },
+        {
+          "label": "Disparidad de IHG en San Valentín",
+          "query": ": En el Iberostar Selection Bávaro (DO-PUJ-BAV), doble estándar DBL-STD, compara la BAR de iberostar.com con la tarifa pública y la Member Rate de IHG para el 14/02/2027, dime si supera el descuento máximo contractual del 5 % y propón la corrección en el canal IHG."
+        },
+        {
+          "label": "Reventa de cupo W2M en Booking",
+          "query": ": Booking muestra el Iberostar Waves Cristina (ES-PMI-CRI), doble estándar DBL-STD, a 128 EUR para la noche del 15/04/2027 con punto de venta DE frente a 142 EUR en nuestra web; identifica el origen de la disparidad, el contrato W2M implicado y la acción correctora."
+        },
+        {
+          "label": "Reparto de cupos y simulación en Punta Cana",
+          "query": ": Para el Iberostar Selection Bávaro (DO-PUJ-BAV) en febrero de 2027, con el pick-up de los últimos 14 días y los eventos de Punta Cana del 01/02/2027 al 28/02/2027, propón el reparto de cupos entre directo, IHG (mínimo contractual 110 habitaciones), W2M y OTA y simula el impacto de subir la BAR un 8 % en ocupación, ADR, RevPAR e ingreso neto."
+        },
+        {
+          "label": "Rentabilidad real de IHG frente a W2M",
+          "query": ": Para MX-PMA, compara la producción IHG del 01/11/2026 al 30/04/2027 con la de W2M en ADR bruto, ADR neto, antelación y cancelaciones, usa la liquidación de fees IHG de octubre de 2026 y dime cuántos USD netos por habitación-noche aporta cada canal."
+        },
+        {
+          "label": "Semana Santa en Mallorca",
+          "query": ": Para el Iberostar Waves Cristina (ES-PMI-CRI), del 25/03/2027 al 05/04/2027, dame la ocupación prevista, los eventos de Mallorca del periodo y el índice de demanda de búsqueda, y recomienda restricciones CTA, CTD y estancia mínima por canal."
+        },
+        {
+          "label": "Publicación tras aprobación",
+          "query": ": Aprueba como rm.mx-pma la propuesta PRP-26-0981 del hotel MX-PMA y publícala en el CRS y el channel manager; antes, haz una validación en seco de la propuesta PRP-26-1004 del hotel DO-PUJ-BAV aprobada por rm.caribe."
+        }
+      ],
+      "description": "Asistente de revenue y distribución para los ~80 resorts de Iberostar Beachfront Resorts. El revenue\nmanager fija cada día tarifa y cupos de cada hotel en cuatro canales con economía muy distinta: la venta\ndirecta en iberostar.com, el canal IHG (alianza desde 2022, hasta 70 resorts distribuidos por IHG y su\nprograma IHG One Rewards), W2M y las OTA. Este caso de uso reúne previsión de demanda, paridad y coste\nneto por canal en una sola recomendación que el revenue manager aprueba antes de publicarla en el CRS.",
+      "purpose": "Hoy la decisión de precio se toma cruzando a mano el CRS, el channel manager, el RMS, los informes de\nproducción de IHG y las herramientas de shopping de competencia. Cada canal tiene comisiones, fees de\nfidelización y obligaciones de paridad distintas, y una tarifa mal mapeada en IHG o un cupo de W2M\nrevendido en una OTA erosiona el ADR neto sin que nadie lo vea a tiempo. El broker consulta en paralelo\ndemanda, paridad y coste de distribución, sintetiza una propuesta y deja siempre la aprobación final en\nmanos del revenue manager.",
+      "readme": "# Revenue y mix de canales IHG / directo / W2M — `revenue-mix-canales-broker-iberostar`\n\n## Description\nAsistente de revenue y distribución para los ~80 resorts de Iberostar Beachfront Resorts. El revenue\nmanager fija cada día tarifa y cupos de cada hotel en cuatro canales con economía muy distinta: la venta\ndirecta en iberostar.com, el canal IHG (alianza desde 2022, hasta 70 resorts distribuidos por IHG y su\nprograma IHG One Rewards), W2M y las OTA. Este caso de uso reúne previsión de demanda, paridad y coste\nneto por canal en una sola recomendación que el revenue manager aprueba antes de publicarla en el CRS.\n\n## Purpose\nHoy la decisión de precio se toma cruzando a mano el CRS, el channel manager, el RMS, los informes de\nproducción de IHG y las herramientas de shopping de competencia. Cada canal tiene comisiones, fees de\nfidelización y obligaciones de paridad distintas, y una tarifa mal mapeada en IHG o un cupo de W2M\nrevendido en una OTA erosiona el ADR neto sin que nadie lo vea a tiempo. El broker consulta en paralelo\ndemanda, paridad y coste de distribución, sintetiza una propuesta y deja siempre la aprobación final en\nmanos del revenue manager.\n\n## Goals\n- Subir el RevPAR neto de comisiones por encima de la subida de precios del +7 % registrada en 2026.\n- Detectar y corregir las disparidades entre canales en menos de 24 horas.\n- Desplazar mix de OTA a venta directa e IHG cuando el ADR neto lo justifique, respetando los\n  compromisos contractuales con IHG y W2M.\n- Anticipar las fechas en riesgo a 90 días y actuar sobre ellas con tarifa, cupos o restricciones.\n- Mantener la trazabilidad: ninguna tarifa se publica sin una propuesta aprobada por el revenue manager.\n\n## Audience / Users\n- **Primary persona:** Revenue manager / distribución (hotel y clúster de destino).\n- **Secondary users:** Director/a de hotel, dirección comercial y de distribución, equipo de contratación con W2M y gestor de la alianza IHG.\n\n## Architecture components\n\n### Broker (YAML-only)\n- `revenue-mix-canales-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `rev-mix-prevision-demanda-agent-iberostar` | Previsión de demanda y pick-up por hotel | prevision-ocupacion, analisis-pickup, desviacion-presupuesto, alertas-fechas-riesgo |\n| `rev-mix-paridad-canales-agent-iberostar` | Control de paridad entre canales | auditoria-paridad, origen-disparidad, correccion-paridad |\n| `rev-mix-recomendacion-precio-agent-iberostar` | Recomendación de tarifa y cupos | recomendar-bar, reparto-cupos-canal, restricciones-estancia, simular-escenario-precio, propuesta-aprobacion |\n| `rev-mix-coste-distribucion-agent-iberostar` | Coste neto de adquisición por canal | coste-neto-canal, mix-optimo-canales, rentabilidad-ihg |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `rev-mix-crs-inventario-mcp-iberostar` | Inventario, tarifas y restricciones del CRS | get_inventory_availability, get_channel_rates, get_stay_restrictions, get_booking_pace, publish_rate_changes |\n| `rev-mix-canal-ihg-mcp-iberostar` | Producción y paridad del canal IHG | get_ihg_production, get_ihg_rate_parity, get_ihg_fee_statement |\n| `rev-mix-mercado-competencia-mcp-iberostar` | Tarifas de competencia y eventos de destino | get_compset_rates, get_ota_public_rates, list_destination_events, get_search_demand_index |\n\n### Shared infrastructure\n- LLM provider: `open-ai-rev-mix-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/revenue-mix-canales-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **Propuesta de Navidad en Riviera Maya** (rev-mix-prevision-demanda → rev-mix-crs-inventario, rev-mix-paridad-canales → rev-mix-canal-ihg, rev-mix-coste-distribucion → rev-mix-canal-ihg, rev-mix-recomendacion-precio → rev-mix-mercado-competencia): Para el Iberostar Selection Paraíso Maya (MX-PMA), doble estándar DBL-STD en todo incluido para 2 adultos, del 20/12/2026 al 06/01/2027, dame la previsión de ocupación, el pick-up de los últimos 7 días frente a 2025, la paridad entre iberostar.com, IHG, W2M y OTA del 27/12/2026, el ADR neto por canal de diciembre de 2026 y prepara la propuesta de BAR, cupos y estancia mínima para aprobar.\n2. **Disparidad de IHG en San Valentín** (rev-mix-paridad-canales → rev-mix-canal-ihg, rev-mix-crs-inventario): En el Iberostar Selection Bávaro (DO-PUJ-BAV), doble estándar DBL-STD, compara la BAR de iberostar.com con la tarifa pública y la Member Rate de IHG para el 14/02/2027, dime si supera el descuento máximo contractual del 5 % y propón la corrección en el canal IHG.\n3. **Reventa de cupo W2M en Booking** (rev-mix-paridad-canales → rev-mix-mercado-competencia, rev-mix-crs-inventario): Booking muestra el Iberostar Waves Cristina (ES-PMI-CRI), doble estándar DBL-STD, a 128 EUR para la noche del 15/04/2027 con punto de venta DE frente a 142 EUR en nuestra web; identifica el origen de la disparidad, el contrato W2M implicado y la acción correctora.\n4. **Reparto de cupos y simulación en Punta Cana** (rev-mix-recomendacion-precio → rev-mix-crs-inventario, rev-mix-mercado-competencia, rev-mix-coste-distribucion → rev-mix-canal-ihg): Para el Iberostar Selection Bávaro (DO-PUJ-BAV) en febrero de 2027, con el pick-up de los últimos 14 días y los eventos de Punta Cana del 01/02/2027 al 28/02/2027, propón el reparto de cupos entre directo, IHG (mínimo contractual 110 habitaciones), W2M y OTA y simula el impacto de subir la BAR un 8 % en ocupación, ADR, RevPAR e ingreso neto.\n5. **Rentabilidad real de IHG frente a W2M** (rev-mix-coste-distribucion → rev-mix-canal-ihg, rev-mix-crs-inventario): Para MX-PMA, compara la producción IHG del 01/11/2026 al 30/04/2027 con la de W2M en ADR bruto, ADR neto, antelación y cancelaciones, usa la liquidación de fees IHG de octubre de 2026 y dime cuántos USD netos por habitación-noche aporta cada canal.\n6. **Semana Santa en Mallorca** (rev-mix-prevision-demanda → rev-mix-mercado-competencia, rev-mix-recomendacion-precio → rev-mix-crs-inventario): Para el Iberostar Waves Cristina (ES-PMI-CRI), del 25/03/2027 al 05/04/2027, dame la ocupación prevista, los eventos de Mallorca del periodo y el índice de demanda de búsqueda, y recomienda restricciones CTA, CTD y estancia mínima por canal.\n7. **Publicación tras aprobación** (rev-mix-recomendacion-precio → rev-mix-crs-inventario): Aprueba como rm.mx-pma la propuesta PRP-26-0981 del hotel MX-PMA y publícala en el CRS y el channel manager; antes, haz una validación en seco de la propuesta PRP-26-1004 del hotel DO-PUJ-BAV aprobada por rm.caribe.\n\n## Orchestration narrative\nEl broker clasifica cada petición del revenue manager (diagnóstico, paridad, coste de canal, tarifa y\ncupos o publicación). Para cualquier recomendación de precio hace un fan-out paralelo a tres agentes: el\nde previsión de demanda consulta inventario y pick-up en el CRS y eventos de destino; el de paridad cruza\nlas tarifas del CRS con IHG y con las tarifas públicas de las OTA; y el de coste de distribución calcula\nel ADR neto por canal con las liquidaciones de IHG. El agente de recomendación de precio sintetiza los\ntres resultados con las tarifas de la competencia y devuelve una propuesta con identificador. La\npublicación en el CRS solo se ejecuta tras la aprobación explícita del revenue manager.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-rev-mix-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "revenue-mix-canales-broker-iberostar",
+        "brokerLabel": "Revenue y mix de canales IHG / directo / W2M – Agent Network",
+        "brokerDescription": "Asistente de revenue y distribución para los resorts de Iberostar. Reúne en paralelo previsión de demanda, paridad entre canales y coste neto de distribución (directo, IHG, W2M y OTA) y prepara una recomendación de tarifas y cupos que el revenue manager aprueba antes de publicarla en el CRS.",
+        "brokerUrlTemplate": "${ingressgw.url}/revenue-mix-canales-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa rev-mix-prevision-demanda-agent-iberostar con rev-mix-crs-inventario-mcp-iberostar y rev-mix-mercado-competencia-mcp-iberostar para previsión de ocupación, pick-up, desviación frente a presupuesto y fechas en riesgo.",
+          "Usa rev-mix-paridad-canales-agent-iberostar con rev-mix-crs-inventario-mcp-iberostar, rev-mix-canal-ihg-mcp-iberostar y rev-mix-mercado-competencia-mcp-iberostar para auditorías de paridad, origen de disparidades y propuestas de corrección.",
+          "Usa rev-mix-coste-distribucion-agent-iberostar con rev-mix-canal-ihg-mcp-iberostar y rev-mix-crs-inventario-mcp-iberostar para comisiones, coste de adquisición, ADR neto por canal, mix óptimo y rentabilidad de IHG frente a W2M y directo.",
+          "Usa rev-mix-recomendacion-precio-agent-iberostar con rev-mix-mercado-competencia-mcp-iberostar y rev-mix-crs-inventario-mcp-iberostar para BAR recomendada, reparto de cupos, restricciones de estancia, simulaciones de precio y preparación de propuestas.",
+          "Para cualquier recomendación de tarifa o cupos, llama primero en paralelo a los agentes de previsión de demanda, paridad de canales y coste de distribución, y pasa sus resultados al agente de recomendación de precio para la síntesis.",
+          "Nunca publiques cambios en el CRS sin la aprobación explícita del revenue manager; usa publish_rate_changes de rev-mix-crs-inventario-mcp-iberostar solo con un proposal_id aprobado.",
+          "Si una recomendación rompe la paridad o el descuento máximo contractual de IHG, señálalo y propón la corrección antes de presentar la propuesta."
+        ],
+        "skills": [
+          {
+            "id": "diagnostico-hotel-periodo",
+            "name": "Diagnóstico de hotel y periodo",
+            "description": "Combina previsión, pick-up, paridad y coste por canal de un hotel y periodo en un único diagnóstico de revenue.",
+            "examples": [
+              "Dame el diagnóstico de revenue del Iberostar Selection Paraíso Maya (MX-PMA) del 20 de diciembre de 2026 al 6 de enero de 2027",
+              "¿Cómo vamos en Iberostar Selection Bávaro para febrero de 2027 en ocupación, paridad y ADR neto por canal?"
+            ],
+            "tags": [
+              "diagnostico",
+              "revenue",
+              "pick-up"
+            ]
+          },
+          {
+            "id": "recomendacion-tarifa-cupos",
+            "name": "Recomendación de tarifa y cupos",
+            "description": "Propone BAR, cupos por canal y restricciones de estancia a partir de la demanda, la competencia y el coste de distribución, y deja la propuesta pendiente de aprobación.",
+            "examples": [
+              "Recomiéndame BAR, cupos y estancia mínima para MX-PMA del 26 al 31 de diciembre de 2026",
+              "Propón el reparto de cupos entre directo, IHG, W2M y OTA del Iberostar Selection Bávaro para febrero de 2027"
+            ],
+            "tags": [
+              "pricing",
+              "cupos",
+              "restricciones"
+            ]
+          },
+          {
+            "id": "control-paridad",
+            "name": "Control de paridad entre canales",
+            "description": "Detecta disparidades entre iberostar.com, IHG, W2M y OTA, identifica su causa y propone la corrección.",
+            "examples": [
+              "Audita la paridad de la doble estándar de MX-PMA para el 27 de diciembre de 2026 y dime qué canal la rompe",
+              "¿Por qué Booking vende el Iberostar Waves Cristina (ES-PMI-CRI) 14 EUR más barato que nuestra web el 15 de abril de 2027?"
+            ],
+            "tags": [
+              "paridad",
+              "canales",
+              "ota"
+            ]
+          },
+          {
+            "id": "rentabilidad-mix-canales",
+            "name": "Rentabilidad del mix de canales",
+            "description": "Compara el coste neto de adquisición y el ADR neto de cada canal y estima cuánto se gana desplazando reservas entre directo, IHG, W2M y OTA.",
+            "examples": [
+              "¿Cuál es el ADR neto por canal de MX-PMA en diciembre de 2026 y cuál sería el mix óptimo?",
+              "¿Cuánto nos aporta realmente IHG en Iberostar Selection Bávaro en 2026 frente a W2M?"
+            ],
+            "tags": [
+              "mix-canal",
+              "comisiones",
+              "ihg"
+            ]
+          },
+          {
+            "id": "aprobar-publicar",
+            "name": "Aprobar y publicar en el CRS",
+            "description": "Presenta la propuesta consolidada al revenue manager y, solo tras su aprobación explícita, la publica en el CRS y el channel manager.",
+            "examples": [
+              "Aprueba y publica la propuesta PRP-26-0981 de MX-PMA en el CRS",
+              "Haz una validación en seco de la propuesta PRP-26-1004 de Iberostar Selection Bávaro antes de publicarla"
+            ],
+            "tags": [
+              "aprobacion",
+              "crs",
+              "publicacion"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "rev-mix-prevision-demanda-agent-iberostar",
+            "label": "Previsión de demanda",
+            "platform": "agentforce",
+            "protocol": "a2a"
+          },
+          {
+            "name": "rev-mix-paridad-canales-agent-iberostar",
+            "label": "Paridad de canales",
+            "platform": "openai",
+            "protocol": "a2a"
+          },
+          {
+            "name": "rev-mix-recomendacion-precio-agent-iberostar",
+            "label": "Recomendación de precio",
+            "platform": "claude platform",
+            "protocol": "a2a"
+          },
+          {
+            "name": "rev-mix-coste-distribucion-agent-iberostar",
+            "label": "Coste de distribución",
+            "platform": "microsoft copilot",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "rev-mix-crs-inventario-mcp-iberostar",
+            "label": "CRS – Inventario y tarifas",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "rev-mix-canal-ihg-mcp-iberostar",
+            "label": "Canal IHG",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "rev-mix-mercado-competencia-mcp-iberostar",
+            "label": "Mercado y competencia",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    },
+    {
+      "slug": "desperdicio-alimentario-circular",
+      "title": "Desperdicio alimentario y menú circular",
+      "shortDescription": "Asistente de cocina para los chefs ejecutivos y responsables de A&B de los resorts todo incluido de\nIberostar. Une los pesajes de desperdicio con IA (Winnow, que redujo el desperdicio un 28 % en seis meses\nen 2023), la ocupación y el perfil de huéspedes del PMS y el sistema de producción de cocina para pasar del\ndato de kg desperdiciados a un plan de producción por estación de buffet y a un menú circular de\naprovechamiento.",
+      "persona": "Chef ejecutivo / responsable de A&B",
+      "businessPain": "Los buffets de todo incluido generan desperdicio y los datos de pesaje (Winnow) no se convierten en planes de producción (brief §3, §5).",
+      "orchestration": "Enriquecimiento secuencial: medición → previsión de comensales → plan de producción y menú circular.",
+      "exampleQueries": [
+        {
+          "label": "Diagnóstico de la cena",
+          "query": ": Para el Iberostar Selection Paraíso Maya (MX-PMA), dame los pesajes Winnow de la cena buffet del 16/11/2026 con kg por estación y tipo de desperdicio, el ranking de estaciones del 09 al 15/11/2026 por kg y las alertas con un umbral del 20 % sobre la media móvil."
+        },
+        {
+          "label": "Plan de producción encadenado",
+          "query": ": Para la cena buffet del 18/11/2026 en MX-PMA, revisa el desperdicio de la estación EST-04 de los últimos 7 días, prevé los cubiertos con la ocupación del PMS descontando las reservas a la carta y crea la orden de producción por estación con un objetivo de 105 g por cubierto."
+        },
+        {
+          "label": "Menú circular seguro",
+          "query": ": Con el excedente de la cena del 18/11/2026 en MX-PMA y los lotes que caducan en los próximos 3 días, propón y registra un menú de aprovechamiento para el almuerzo del 19/11/2026, comprobando el registro APPCC de abatimiento e indicando los alérgenos de cada plato."
+        },
+        {
+          "label": "Ajuste de escandallo",
+          "query": ": Para la receta REC-CRI-0207 Paella mixta del Iberostar Waves Cristina (ES-PMI-CRI), consulta el escandallo con el sobrante de los últimos 30 días, el ranking por porcentaje de sobrante del 01 al 16/11/2026 y propón bajar la porción de 320 g a 280 g con el ahorro mensual en euros."
+        },
+        {
+          "label": "Perfil de huéspedes y afluencia",
+          "query": ": Para el Iberostar Selection Bávaro (DO-BAV), dame el mix de nacionalidades, edades, grupos y dietas del 16 al 22/11/2026, la ocupación del 18/11/2026 con las excursiones fuera del hotel y las reservas del snack bar de playa para el almuerzo de ese día, y reparte los cubiertos por franjas de 30 minutos."
+        },
+        {
+          "label": "Impacto para Wave of Change",
+          "query": ": Para DO-BAV, compara los gramos por cubierto semanales del 01/10/2026 al 16/11/2026 con la línea base de 2023 y el objetivo de 92 g, y resume los kg evitados, el ahorro en USD y las toneladas de CO2e no emitidas para el capítulo de Economía circular del informe de Wave of Change 2026."
+        }
+      ],
+      "description": "Asistente de cocina para los chefs ejecutivos y responsables de A&B de los resorts todo incluido de\nIberostar. Une los pesajes de desperdicio con IA (Winnow, que redujo el desperdicio un 28 % en seis meses\nen 2023), la ocupación y el perfil de huéspedes del PMS y el sistema de producción de cocina para pasar del\ndato de kg desperdiciados a un plan de producción por estación de buffet y a un menú circular de\naprovechamiento.",
+      "purpose": "Los buffets de todo incluido generan desperdicio y los datos de pesaje de Winnow se quedan en informes que\nno se convierten en planes de producción. Este caso de uso enriquece en secuencia la medición del\ndesperdicio con la previsión de comensales a partir de la ocupación del PMS y la traduce en órdenes de\nproducción, ajustes de escandallos y menús de aprovechamiento, en línea con el pilar Economía circular y la\nhoja de ruta de economía circular de Wave of Change, y con el Reglamento (CE) 852/2004 (APPCC) y el\nReglamento (UE) 1169/2011 de alérgenos.",
+      "readme": "# Desperdicio alimentario y menú circular — `desperdicio-alimentario-circular-broker-iberostar`\n\n## Description\nAsistente de cocina para los chefs ejecutivos y responsables de A&B de los resorts todo incluido de\nIberostar. Une los pesajes de desperdicio con IA (Winnow, que redujo el desperdicio un 28 % en seis meses\nen 2023), la ocupación y el perfil de huéspedes del PMS y el sistema de producción de cocina para pasar del\ndato de kg desperdiciados a un plan de producción por estación de buffet y a un menú circular de\naprovechamiento.\n\n## Purpose\nLos buffets de todo incluido generan desperdicio y los datos de pesaje de Winnow se quedan en informes que\nno se convierten en planes de producción. Este caso de uso enriquece en secuencia la medición del\ndesperdicio con la previsión de comensales a partir de la ocupación del PMS y la traduce en órdenes de\nproducción, ajustes de escandallos y menús de aprovechamiento, en línea con el pilar Economía circular y la\nhoja de ruta de economía circular de Wave of Change, y con el Reglamento (CE) 852/2004 (APPCC) y el\nReglamento (UE) 1169/2011 de alérgenos.\n\n## Goals\n- Bajar los gramos de desperdicio por cubierto hasta el objetivo anual de cada resort (p. ej. 95 g en el Iberostar Selection Paraíso Maya).\n- Ajustar la producción de cada estación de buffet a los cubiertos previstos con una desviación inferior al 5 %.\n- Reaprovechar de forma segura los excedentes y el stock próximo a caducar en menús circulares.\n- Revisar los escandallos de las recetas con más sobrante y reducir el coste de materia prima.\n- Medir kg evitados, ahorro y CO2e para el Informe de Progreso de Wave of Change.\n\n## Audience / Users\n- **Primary persona:** Chef ejecutivo / responsable de A&B de un resort todo incluido.\n- **Secondary users:** Jefes de partida y de estación de buffet, jefe/a de compras, dirección de hotel y oficina de la CSO (Wave of Change).\n\n## Architecture components\n\n### Broker (YAML-only)\n- `desperdicio-alimentario-circular-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `desp-alim-medicion-desperdicio-agent-iberostar` | Análisis de pesajes de desperdicio por servicio y estación | resumen-desperdicio-servicio, ranking-estaciones-buffet, tendencia-objetivo-circular, alertas-anomalias-pesaje |\n| `desp-alim-prevision-comensales-agent-iberostar` | Previsión de comensales por servicio | prevision-cubiertos-servicio, curva-afluencia-franjas, mix-perfil-comensales |\n| `desp-alim-menu-circular-agent-iberostar` | Plan de producción y menú de aprovechamiento | plan-produccion-estaciones, ajuste-escandallos, menu-aprovechamiento, rotacion-stock-caducidades, impacto-circularidad |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `desp-alim-pesaje-residuos-mcp-iberostar` | Pesajes de desperdicio por estación y servicio (Winnow) | get_waste_weighings, get_station_waste_ranking, get_waste_per_cover_trend, list_waste_alerts |\n| `desp-alim-produccion-cocina-mcp-iberostar` | Órdenes de producción, escandallos y stock | create_production_order, get_recipe_costing, update_recipe_portion, list_expiring_stock, register_leftover_menu |\n| `desp-alim-ocupacion-pms-mcp-iberostar` | Ocupación y perfil de huéspedes por fecha | get_daily_occupancy, get_guest_mix, get_a_la_carte_bookings |\n\n### Shared infrastructure\n- LLM provider: `open-ai-desp-alim-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/desperdicio-alimentario-circular-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **Diagnóstico de la cena** (desp-alim-medicion-desperdicio → desp-alim-pesaje-residuos): Para el Iberostar Selection Paraíso Maya (MX-PMA), dame los pesajes Winnow de la cena buffet del 16/11/2026 con kg por estación y tipo de desperdicio, el ranking de estaciones del 09 al 15/11/2026 por kg y las alertas con un umbral del 20 % sobre la media móvil.\n2. **Plan de producción encadenado** (desp-alim-medicion-desperdicio → desp-alim-pesaje-residuos, desp-alim-prevision-comensales → desp-alim-ocupacion-pms, desp-alim-menu-circular → desp-alim-produccion-cocina): Para la cena buffet del 18/11/2026 en MX-PMA, revisa el desperdicio de la estación EST-04 de los últimos 7 días, prevé los cubiertos con la ocupación del PMS descontando las reservas a la carta y crea la orden de producción por estación con un objetivo de 105 g por cubierto.\n3. **Menú circular seguro** (desp-alim-menu-circular → desp-alim-produccion-cocina, desp-alim-pesaje-residuos): Con el excedente de la cena del 18/11/2026 en MX-PMA y los lotes que caducan en los próximos 3 días, propón y registra un menú de aprovechamiento para el almuerzo del 19/11/2026, comprobando el registro APPCC de abatimiento e indicando los alérgenos de cada plato.\n4. **Ajuste de escandallo** (desp-alim-menu-circular → desp-alim-produccion-cocina, desp-alim-medicion-desperdicio → desp-alim-pesaje-residuos): Para la receta REC-CRI-0207 Paella mixta del Iberostar Waves Cristina (ES-PMI-CRI), consulta el escandallo con el sobrante de los últimos 30 días, el ranking por porcentaje de sobrante del 01 al 16/11/2026 y propón bajar la porción de 320 g a 280 g con el ahorro mensual en euros.\n5. **Perfil de huéspedes y afluencia** (desp-alim-prevision-comensales → desp-alim-ocupacion-pms): Para el Iberostar Selection Bávaro (DO-BAV), dame el mix de nacionalidades, edades, grupos y dietas del 16 al 22/11/2026, la ocupación del 18/11/2026 con las excursiones fuera del hotel y las reservas del snack bar de playa para el almuerzo de ese día, y reparte los cubiertos por franjas de 30 minutos.\n6. **Impacto para Wave of Change** (desp-alim-menu-circular → desp-alim-pesaje-residuos, desp-alim-produccion-cocina): Para DO-BAV, compara los gramos por cubierto semanales del 01/10/2026 al 16/11/2026 con la línea base de 2023 y el objetivo de 92 g, y resume los kg evitados, el ahorro en USD y las toneladas de CO2e no emitidas para el capítulo de Economía circular del informe de Wave of Change 2026.\n\n## Orchestration narrative\nEl broker sigue un enriquecimiento secuencial: medición → previsión de comensales → plan de producción y\nmenú circular. Primero el agente de medición lee en el MCP de pesaje los kg por servicio, estación y tipo de\ndesperdicio y detecta dónde se produce de más. Después el agente de previsión combina la ocupación del PMS,\nel perfil de los huéspedes y las reservas a la carta para estimar los cubiertos del buffet por franja. Con\nambos resultados, el agente de menú circular crea la orden de producción por estación, ajusta los\nescandallos con más sobrante y propone menús de aprovechamiento con los excedentes y el stock que caduca,\nsolo si el control APPCC está en orden. La respuesta final llega en español, con identificadores de orden,\nreceta y menú, y con el impacto en kg, coste y CO2e.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-desp-alim-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "desperdicio-alimentario-circular-broker-iberostar",
+        "brokerLabel": "Desperdicio alimentario y menú circular – Agent Network",
+        "brokerDescription": "Asistente de cocina para chefs ejecutivos y responsables de A&B de los resorts todo incluido de Iberostar. Convierte los pesajes de desperdicio con IA (Winnow) y la ocupación del PMS en previsiones de comensales, planes de producción por estación de buffet y menús circulares de aprovechamiento alineados con Wave of Change.",
+        "brokerUrlTemplate": "${ingressgw.url}/desperdicio-alimentario-circular-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa desp-alim-medicion-desperdicio-agent-iberostar con desp-alim-pesaje-residuos-mcp-iberostar para pesajes por servicio, ranking de estaciones, kg por cubierto, tendencia frente al objetivo de Wave of Change y alertas de anomalías.",
+          "Usa desp-alim-prevision-comensales-agent-iberostar con desp-alim-ocupacion-pms-mcp-iberostar para prever cubiertos por servicio, curvas de afluencia por franjas y el perfil de los huéspedes.",
+          "Usa desp-alim-menu-circular-agent-iberostar con desp-alim-produccion-cocina-mcp-iberostar para órdenes de producción por estación, ajuste de escandallos, stock próximo a caducar y registro de menús de aprovechamiento.",
+          "Para un plan de producción, encadena en secuencia - primero la medición del desperdicio del mismo servicio en los últimos 7 días, después la previsión de comensales y por último el plan de producción con esos dos resultados como entrada.",
+          "Para un menú circular, consulta primero los excedentes pesados del servicio anterior y el stock que caduca en los próximos 3 días, y solo después propón y registra el menú.",
+          "Usa desp-alim-menu-circular-agent-iberostar con desp-alim-pesaje-residuos-mcp-iberostar y desp-alim-produccion-cocina-mcp-iberostar para el impacto de circularidad y el reporting de Wave of Change.",
+          "No registres un menú de aprovechamiento si el control APPCC de abatimiento no está en estado ok, e indica siempre los alérgenos de cada plato."
+        ],
+        "skills": [
+          {
+            "id": "diagnostico-desperdicio",
+            "name": "Diagnóstico del desperdicio",
+            "description": "Resume los pesajes Winnow de un servicio o periodo, el ranking de estaciones, los kg por cubierto frente al objetivo de Wave of Change y las alertas abiertas.",
+            "examples": [
+              "¿Cuántos kg de desperdicio generó la cena buffet del Iberostar Selection Paraíso Maya el 16/11/2026 y qué estaciones pesaron más?",
+              "¿Vamos en línea con el objetivo de economía circular en el Iberostar Selection Bávaro este trimestre?"
+            ],
+            "tags": [
+              "winnow",
+              "kg-por-cubierto",
+              "estaciones"
+            ]
+          },
+          {
+            "id": "plan-produccion-servicio",
+            "name": "Plan de producción del servicio",
+            "description": "Prevé los comensales de un servicio a partir de la ocupación del PMS y las reservas a la carta y genera la orden de producción por estación de buffet.",
+            "examples": [
+              "Prevé los comensales de la cena del 18/11/2026 en el Iberostar Selection Paraíso Maya y genera el plan de producción por estación",
+              "¿Cuántas raciones debe preparar cada estación en el almuerzo de mañana del Iberostar Selection Bávaro?"
+            ],
+            "tags": [
+              "prevision",
+              "produccion",
+              "pms"
+            ]
+          },
+          {
+            "id": "menu-circular-aprovechamiento",
+            "name": "Menú circular y aprovechamiento",
+            "description": "Propone y registra menús de aprovechamiento con los excedentes seguros y el stock próximo a caducar, respetando APPCC y alérgenos.",
+            "examples": [
+              "Propón un menú de aprovechamiento para el almuerzo del 19/11/2026 en el Iberostar Selection Paraíso Maya con el excedente de la cena y los lotes que caducan en 3 días",
+              "¿Qué platos circulares podemos hacer con el pan y la fruta sobrante del desayuno en el Iberostar Selection Bávaro?"
+            ],
+            "tags": [
+              "aprovechamiento",
+              "caducidades",
+              "appcc"
+            ]
+          },
+          {
+            "id": "ajuste-escandallos-porciones",
+            "name": "Ajuste de escandallos",
+            "description": "Recalcula gramajes y costes por ración de las recetas con más sobrante y estima el ahorro en kg y en euros o dólares.",
+            "examples": [
+              "Ajusta el escandallo de la lubina a la plancha REC-PMA-0412 a 130 g según el sobrante de noviembre",
+              "¿Cuánto ahorramos si bajamos la porción de paella REC-CRI-0207 de 320 a 280 g en el Iberostar Waves Cristina?"
+            ],
+            "tags": [
+              "escandallos",
+              "porciones",
+              "coste"
+            ]
+          },
+          {
+            "id": "impacto-wave-of-change",
+            "name": "Impacto para Wave of Change",
+            "description": "Calcula kg evitados, ahorro y CO2e no emitido por los planes ajustados y menús circulares para el reporting de economía circular.",
+            "examples": [
+              "Resume el impacto de circularidad del T4 2026 del Iberostar Selection Bávaro para el informe de Wave of Change"
+            ],
+            "tags": [
+              "impacto",
+              "co2e",
+              "wave-of-change"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "desp-alim-medicion-desperdicio-agent-iberostar",
+            "label": "Medición del desperdicio",
+            "platform": "vertex ai",
+            "protocol": "a2a"
+          },
+          {
+            "name": "desp-alim-prevision-comensales-agent-iberostar",
+            "label": "Previsión de comensales",
+            "platform": "agentforce",
+            "protocol": "a2a"
+          },
+          {
+            "name": "desp-alim-menu-circular-agent-iberostar",
+            "label": "Producción y menú circular",
+            "platform": "openai",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "desp-alim-pesaje-residuos-mcp-iberostar",
+            "label": "Pesaje de residuos",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "desp-alim-produccion-cocina-mcp-iberostar",
+            "label": "Producción de cocina",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "desp-alim-ocupacion-pms-mcp-iberostar",
+            "label": "Ocupación PMS",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    },
+    {
+      "slug": "reporting-wave-of-change",
+      "title": "Reporting Wave of Change (ESRS / TNFD)",
+      "shortDescription": "Asistente de reporting de sostenibilidad para la Oficina de la Chief Sustainability Officer, Gloria\nFluxà. Consolida los KPI ambientales de unos 80 hoteles en 13 países (energía, emisiones, agua, residuos,\npescado responsable y restauración costera), traza cada cifra hasta su factura, lectura, certificado o\nalbarán y la cruza con los requisitos ESRS (E1, E3, E4, E5), TNFD y taxonomía UE antes de redactar el\nInforme de Progreso Wave of Change, el informe TNFD y la declaración de sostenibilidad.",
+      "persona": "Oficina de la Chief Sustainability Officer",
+      "businessPain": "Consolidar los KPI de unos 80 hoteles con evidencia trazable para CSRD/ESRS, TNFD y el Informe de Progreso (brief §3, §6).",
+      "orchestration": "Comparación contra corpus de referencia: cada dato se cruza con los requisitos ESRS/TNFD antes de redactar.",
+      "exampleQueries": [
+        {
+          "label": "Huella de carbono de un resort",
+          "query": ": Calcula el alcance 1 y 2 de 2025 del Iberostar Selection Paraíso Maya (MX-PMY) en tCO2e con método de ubicación y de mercado, usando los factores de emisión de México 2025 y los certificados I-REC aplicados, y dame sus kWh por noche de huésped frente a la media del grupo."
+        },
+        {
+          "label": "Progreso frente a los objetivos 2030",
+          "query": ": Para todo el grupo (scope GROUP) en el ejercicio 2025, compara los kWh por noche de huésped con la línea base 2019 frente al objetivo de −35 %, las emisiones de alcance 1 y 2 por país frente al −12 % y los kg de residuo a vertedero por noche frente al −54 %, y señala qué países no van en línea."
+        },
+        {
+          "label": "Blue Foods en República Dominicana",
+          "query": ": Dame el porcentaje de pescado responsable de los hoteles de República Dominicana (scope DO) entre el 01/07/2026 y el 30/09/2026 con desglose MSC, ASC y pesca local verificada, lista las compras sin evidencia y los certificados de todas las regiones que caducan antes del 31/12/2026."
+        },
+        {
+          "label": "Restauración costera para ESRS E4 y TNFD",
+          "query": ": Con el inventario de viveros de coral a 31/12/2025, los manglares plantados entre el 01/01/2019 y el 31/12/2025 y la Posidonia protegida en todas las islas de Baleares en 2025, compara con los objetivos de más de 8 viveros y más de 19.000 manglares y redacta el capítulo ESRS E4 comprobando antes la cobertura de datapoints de ESRS_E4."
+        },
+        {
+          "label": "Paquete de verificación del auditor",
+          "query": ": Traza el KPI de energía total 2025 (612.400 MWh) hasta facturas y lecturas por hotel, busca anomalías superiores al 25 % interanual en energía, agua y residuos de 2025 (incluidos los albaranes de JOIA Paraíso MX-JPA de 2025-03) y prepara el paquete de verificación limitada del ESRS E1 con una muestra de 8 hoteles."
+        },
+        {
+          "label": "Capítulo E1 cruzado con el marco",
+          "query": ": Obtén los requisitos de divulgación del ESRS E1, comprueba la cobertura de los datapoints E1-5 y E1-6 del ejercicio 2025 y redacta el capítulo E1 con energía en MWh, emisiones de alcance 1, 2 y 3 en tCO2e y el apartado E1-4 de objetivos, marcando qué cifras son estimadas."
+        },
+        {
+          "label": "Primer informe TNFD",
+          "query": ": Haz la fase Localizar de LEAP para los 80 hoteles (áreas protegidas o arrecifes a menos de 1 km), calcula el agua captada en m3 en 2025 en zonas de estrés hídrico alto, rellena las métricas núcleo de TNFD con valor, unidad y fuente y redacta la sección de métricas y objetivos aplicando comply or explain a las que falten."
+        }
+      ],
+      "description": "Asistente de reporting de sostenibilidad para la Oficina de la Chief Sustainability Officer, Gloria\nFluxà. Consolida los KPI ambientales de unos 80 hoteles en 13 países (energía, emisiones, agua, residuos,\npescado responsable y restauración costera), traza cada cifra hasta su factura, lectura, certificado o\nalbarán y la cruza con los requisitos ESRS (E1, E3, E4, E5), TNFD y taxonomía UE antes de redactar el\nInforme de Progreso Wave of Change, el informe TNFD y la declaración de sostenibilidad.",
+      "purpose": "Los datos de sostenibilidad de Grupo Iberostar viven en sistemas distintos por hotel: contadores y\nfacturas de energía y agua, el ERP de compras de pescado, los registros científicos de viveros de coral y\nmanglares y los albaranes de cada gestor de residuos. Consolidarlos para CSRD/ESRS y TNFD con evidencia\ntrazable cuesta semanas de hojas de cálculo. Este caso de uso pone esos sistemas detrás de un broker que\ncompara cada dato con un corpus de referencia ESRS/TNFD antes de redactar y declara de forma explícita lo\nque falta o es estimado.",
+      "readme": "# Reporting Wave of Change (ESRS / TNFD) — `reporting-wave-of-change-broker-iberostar`\n\n## Description\nAsistente de reporting de sostenibilidad para la Oficina de la Chief Sustainability Officer, Gloria\nFluxà. Consolida los KPI ambientales de unos 80 hoteles en 13 países (energía, emisiones, agua, residuos,\npescado responsable y restauración costera), traza cada cifra hasta su factura, lectura, certificado o\nalbarán y la cruza con los requisitos ESRS (E1, E3, E4, E5), TNFD y taxonomía UE antes de redactar el\nInforme de Progreso Wave of Change, el informe TNFD y la declaración de sostenibilidad.\n\n## Purpose\nLos datos de sostenibilidad de Grupo Iberostar viven en sistemas distintos por hotel: contadores y\nfacturas de energía y agua, el ERP de compras de pescado, los registros científicos de viveros de coral y\nmanglares y los albaranes de cada gestor de residuos. Consolidarlos para CSRD/ESRS y TNFD con evidencia\ntrazable cuesta semanas de hojas de cálculo. Este caso de uso pone esos sistemas detrás de un broker que\ncompara cada dato con un corpus de referencia ESRS/TNFD antes de redactar y declara de forma explícita lo\nque falta o es estimado.\n\n## Goals\n- Cerrar los KPI anuales de los 80 hoteles en días en lugar de semanas, con el 100 % de las cifras enlazadas a su evidencia.\n- Medir en cada informe el avance frente a −35 % de energía en 2030, −12 % de emisiones y −54 % de residuos.\n- Seguir el objetivo Blue Foods de 100 % de pescado responsable (MSC/ASC) por especie, país y proveedor.\n- Mantener los objetivos de más de 8 viveros de coral y más de 19.000 manglares con datos verificables.\n- Llegar a la verificación limitada de la declaración ESRS sin requerimientos abiertos del auditor que bloqueen la opinión.\n\n## Audience / Users\n- **Primary persona:** Oficina de la Chief Sustainability Officer (equipo de reporting ESG y Wave of Change).\n- **Secondary users:** Dirección técnica y de energía, compras, equipo científico de Wave of Change, auditor externo de la verificación y Comunicación corporativa.\n\n## Architecture components\n\n### Broker (YAML-only)\n- `reporting-wave-of-change-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `woc-rep-huella-carbono-agent-iberostar` | Cálculo de huella de carbono de alcance 1, 2 y 3 | calcular-alcance-1-2, estimar-alcance-3, progreso-objetivos-2030, intensidad-por-estancia |\n| `woc-rep-pesca-responsable-agent-iberostar` | Seguimiento del objetivo Blue Foods de pescado responsable | porcentaje-pescado-responsable, especies-en-riesgo, evidencia-certificados |\n| `woc-rep-naturaleza-tnfd-agent-iberostar` | Indicadores de naturaleza y restauración costera para TNFD | indicadores-restauracion-costera, evaluacion-leap, agua-estres-hidrico, metricas-tnfd-nucleo |\n| `woc-rep-auditoria-evidencias-agent-iberostar` | Trazabilidad y auditoría de evidencias | trazar-kpi-evidencia, detectar-huecos-anomalias, paquete-verificacion |\n| `woc-rep-redaccion-informe-agent-iberostar` | Redacción de capítulos del informe | redactar-capitulo-e1, redactar-capitulo-e3-e4, redactar-capitulo-e5, redactar-informe-tnfd, resumen-informe-progreso |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `woc-rep-energia-agua-mcp-iberostar` | Consumos de energía y agua por hotel | get_hotel_energy_consumption, get_hotel_water_balance, get_portfolio_energy_summary, get_emission_factors |\n| `woc-rep-compras-pescado-mcp-iberostar` | Compras de pescado con origen y certificación MSC/ASC | list_fish_purchases, get_supplier_certificates, get_species_risk_profile |\n| `woc-rep-restauracion-costera-mcp-iberostar` | Viveros de coral, manglares y Posidonia | list_coral_nurseries, list_mangrove_plantings, get_seagrass_protection |\n| `woc-rep-gestion-residuos-mcp-iberostar` | Residuos por fracción y gestor | get_waste_by_fraction, list_waste_manager_receipts, get_waste_target_progress, list_authorized_waste_managers |\n| `woc-rep-marco-esrs-mcp-iberostar` | Requisitos ESRS, TNFD y taxonomía UE | get_esrs_disclosure_requirements, get_tnfd_recommendations, check_datapoint_coverage, get_eu_taxonomy_criteria, get_reporting_calendar |\n\n### Shared infrastructure\n- LLM provider: `open-ai-woc-rep-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/reporting-wave-of-change-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **Huella de carbono de un resort** (woc-rep-huella-carbono → woc-rep-energia-agua): Calcula el alcance 1 y 2 de 2025 del Iberostar Selection Paraíso Maya (MX-PMY) en tCO2e con método de ubicación y de mercado, usando los factores de emisión de México 2025 y los certificados I-REC aplicados, y dame sus kWh por noche de huésped frente a la media del grupo.\n2. **Progreso frente a los objetivos 2030** (woc-rep-huella-carbono → woc-rep-energia-agua, woc-rep-gestion-residuos): Para todo el grupo (scope GROUP) en el ejercicio 2025, compara los kWh por noche de huésped con la línea base 2019 frente al objetivo de −35 %, las emisiones de alcance 1 y 2 por país frente al −12 % y los kg de residuo a vertedero por noche frente al −54 %, y señala qué países no van en línea.\n3. **Blue Foods en República Dominicana** (woc-rep-pesca-responsable → woc-rep-compras-pescado): Dame el porcentaje de pescado responsable de los hoteles de República Dominicana (scope DO) entre el 01/07/2026 y el 30/09/2026 con desglose MSC, ASC y pesca local verificada, lista las compras sin evidencia y los certificados de todas las regiones que caducan antes del 31/12/2026.\n4. **Restauración costera para ESRS E4 y TNFD** (woc-rep-naturaleza-tnfd → woc-rep-restauracion-costera, woc-rep-redaccion-informe → woc-rep-marco-esrs): Con el inventario de viveros de coral a 31/12/2025, los manglares plantados entre el 01/01/2019 y el 31/12/2025 y la Posidonia protegida en todas las islas de Baleares en 2025, compara con los objetivos de más de 8 viveros y más de 19.000 manglares y redacta el capítulo ESRS E4 comprobando antes la cobertura de datapoints de ESRS_E4.\n5. **Paquete de verificación del auditor** (woc-rep-auditoria-evidencias → woc-rep-energia-agua, woc-rep-gestion-residuos): Traza el KPI de energía total 2025 (612.400 MWh) hasta facturas y lecturas por hotel, busca anomalías superiores al 25 % interanual en energía, agua y residuos de 2025 (incluidos los albaranes de JOIA Paraíso MX-JPA de 2025-03) y prepara el paquete de verificación limitada del ESRS E1 con una muestra de 8 hoteles.\n6. **Capítulo E1 cruzado con el marco** (woc-rep-redaccion-informe → woc-rep-marco-esrs, woc-rep-huella-carbono → woc-rep-energia-agua): Obtén los requisitos de divulgación del ESRS E1, comprueba la cobertura de los datapoints E1-5 y E1-6 del ejercicio 2025 y redacta el capítulo E1 con energía en MWh, emisiones de alcance 1, 2 y 3 en tCO2e y el apartado E1-4 de objetivos, marcando qué cifras son estimadas.\n7. **Primer informe TNFD** (woc-rep-naturaleza-tnfd → woc-rep-energia-agua, woc-rep-redaccion-informe → woc-rep-marco-esrs): Haz la fase Localizar de LEAP para los 80 hoteles (áreas protegidas o arrecifes a menos de 1 km), calcula el agua captada en m3 en 2025 en zonas de estrés hídrico alto, rellena las métricas núcleo de TNFD con valor, unidad y fuente y redacta la sección de métricas y objetivos aplicando comply or explain a las que falten.\n\n## Orchestration narrative\nEl broker sigue un patrón de comparación contra corpus de referencia. Primero clasifica la petición\n(huella de carbono, Blue Foods, naturaleza y agua, evidencias o redacción) y llama a los agentes de dato,\nque consultan los MCP de energía y agua, compras de pescado, restauración costera y gestión de residuos.\nDespués pasa cada cifra por el agente de auditoría para enlazar su evidencia y marcar huecos o\nestimaciones. Antes de redactar, el agente de redacción cruza los datapoints disponibles con el MCP del\nmarco ESRS, TNFD y taxonomía UE y declara lo que falta. La respuesta final es un único texto en español\ncon las cifras en tCO2e, MWh, m3 y kg, su año, su alcance y su fuente.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-woc-rep-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "reporting-wave-of-change-broker-iberostar",
+        "brokerLabel": "Reporting Wave of Change (ESRS / TNFD) – Agent Network",
+        "brokerDescription": "Asistente de reporting de sostenibilidad para la Oficina de la Chief Sustainability Officer de Grupo Iberostar. Consolida los KPI de unos 80 hoteles, los traza hasta su evidencia y los cruza con los requisitos ESRS, TNFD y taxonomía UE antes de redactar el Informe de Progreso Wave of Change y la declaración de sostenibilidad.",
+        "brokerUrlTemplate": "${ingressgw.url}/reporting-wave-of-change-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa woc-rep-huella-carbono-agent-iberostar con woc-rep-energia-agua-mcp-iberostar para emisiones de alcance 1 y 2, factores de emisión, intensidad por estancia y progreso frente a −35 % de energía y −12 % de emisiones; añade woc-rep-gestion-residuos-mcp-iberostar para el alcance 3 categoría 5.",
+          "Usa woc-rep-pesca-responsable-agent-iberostar con woc-rep-compras-pescado-mcp-iberostar para el porcentaje Blue Foods, especies en riesgo o en veda y certificados MSC/ASC.",
+          "Usa woc-rep-naturaleza-tnfd-agent-iberostar con woc-rep-restauracion-costera-mcp-iberostar para viveros de coral, manglares y Posidonia, y con woc-rep-energia-agua-mcp-iberostar para agua en zonas de estrés hídrico.",
+          "Usa woc-rep-auditoria-evidencias-agent-iberostar con woc-rep-energia-agua-mcp-iberostar, woc-rep-gestion-residuos-mcp-iberostar y woc-rep-restauracion-costera-mcp-iberostar para trazar KPI, detectar huecos y anomalías y preparar paquetes de verificación.",
+          "Usa woc-rep-redaccion-informe-agent-iberostar con woc-rep-marco-esrs-mcp-iberostar para redactar capítulos ESRS E1, E3, E4 y E5, secciones TNFD y el resumen del Informe de Progreso.",
+          "Antes de redactar cualquier capítulo, cruza cada dato con woc-rep-marco-esrs-mcp-iberostar (check_datapoint_coverage) y declara los datapoints que falten o sean estimados.",
+          "Ningún dato entra en un capítulo sin pasar antes por woc-rep-auditoria-evidencias-agent-iberostar; si una evidencia falta, márcalo como pendiente en lugar de inventar la cifra.",
+          "Usa siempre tCO2e, MWh, m3 y kg, e indica año, alcance (hotel, país o grupo) y fuente de cada cifra."
+        ],
+        "skills": [
+          {
+            "id": "consolidar-kpi-wave-of-change",
+            "name": "Consolidar KPI Wave of Change",
+            "description": "Consolida energía, emisiones, agua, residuos, pescado responsable y restauración costera por hotel, país o grupo y los compara con los objetivos 2030.",
+            "examples": [
+              "Consolida los KPI de 2025 de todo el grupo frente a los objetivos de −35 % de energía, −12 % de emisiones y −54 % de residuos",
+              "¿Cómo va Blue Foods y la restauración costera en República Dominicana en el tercer trimestre de 2026?"
+            ],
+            "tags": [
+              "kpi",
+              "wave-of-change",
+              "objetivos-2030"
+            ]
+          },
+          {
+            "id": "verificar-evidencias",
+            "name": "Verificar evidencias para el auditor",
+            "description": "Traza cada dato hasta su factura, lectura, certificado o albarán, señala huecos y anomalías y prepara el paquete de verificación limitada.",
+            "examples": [
+              "Traza el KPI de energía total 2025 (612.400 MWh) hasta sus facturas y prepara el paquete de verificación E1 con 8 hoteles",
+              "¿Qué requerimientos del auditor siguen abiertos a 17/11/2026 y qué evidencias faltan?"
+            ],
+            "tags": [
+              "evidencias",
+              "verificacion",
+              "csrd"
+            ]
+          },
+          {
+            "id": "redactar-esrs",
+            "name": "Redactar capítulos ESRS",
+            "description": "Cruza los datos con los requisitos de E1, E3, E4 y E5 y redacta cada capítulo de la declaración de sostenibilidad con su cobertura de datapoints.",
+            "examples": [
+              "Redacta el capítulo ESRS E1 de 2025 con energía, alcance 1, 2 y 3 y objetivos, y dime qué datapoints son estimados",
+              "Escribe el capítulo ESRS E5 de 2025 con residuos por fracción y progreso hacia el −54 %"
+            ],
+            "tags": [
+              "esrs",
+              "redaccion",
+              "declaracion-de-sostenibilidad"
+            ]
+          },
+          {
+            "id": "preparar-informe-tnfd",
+            "name": "Preparar el informe TNFD",
+            "description": "Aplica LEAP a los hoteles en áreas sensibles, rellena las métricas núcleo y redacta las secciones TNFD con enfoque comply or explain.",
+            "examples": [
+              "Haz la fase Localizar de LEAP para los 80 hoteles y redacta la sección de estrategia del informe TNFD",
+              "¿Qué métricas núcleo de TNFD de 2025 podemos reportar y cuáles declaramos en desarrollo?"
+            ],
+            "tags": [
+              "tnfd",
+              "naturaleza",
+              "leap"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "woc-rep-huella-carbono-agent-iberostar",
+            "label": "Huella de carbono",
+            "platform": "claude platform",
+            "protocol": "a2a"
+          },
+          {
+            "name": "woc-rep-pesca-responsable-agent-iberostar",
+            "label": "Pesca responsable (Blue Foods)",
+            "platform": "microsoft copilot",
+            "protocol": "a2a"
+          },
+          {
+            "name": "woc-rep-naturaleza-tnfd-agent-iberostar",
+            "label": "Naturaleza y TNFD",
+            "platform": "vertex ai",
+            "protocol": "a2a"
+          },
+          {
+            "name": "woc-rep-auditoria-evidencias-agent-iberostar",
+            "label": "Auditoría de evidencias",
+            "platform": "agentforce",
+            "protocol": "a2a"
+          },
+          {
+            "name": "woc-rep-redaccion-informe-agent-iberostar",
+            "label": "Redacción del informe",
+            "platform": "openai",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "woc-rep-energia-agua-mcp-iberostar",
+            "label": "Energía y agua",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "woc-rep-compras-pescado-mcp-iberostar",
+            "label": "Compras de pescado",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "woc-rep-restauracion-costera-mcp-iberostar",
+            "label": "Restauración costera",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "woc-rep-gestion-residuos-mcp-iberostar",
+            "label": "Gestión de residuos",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "woc-rep-marco-esrs-mcp-iberostar",
+            "label": "Marco ESRS, TNFD y taxonomía",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    },
+    {
+      "slug": "talento-temporada",
+      "title": "Talento de temporada con revisión humana",
+      "shortDescription": "Asistente de RR. HH. para los picos de contratación de temporada de una plantilla de más de 40.000\npersonas de 95 nacionalidades: Baleares y Canarias en verano, el Caribe en invierno. Prevé cuántas\npersonas necesita cada hotel, criba de forma explicable las candidaturas del portal Build the Change para\npuestos como camarero de pisos, cocinero, animador, recepcionista o socorrista, prepara la incorporación\ny la formación obligatoria y audita la equidad de todo el proceso.",
+      "persona": "Responsable de RR. HH. / talento",
+      "businessPain": "Alta rotación y picos estacionales en una plantilla de 95 nacionalidades, con la selección asistida por IA clasificada como alto riesgo en el AI Act (brief §5, §6).",
+      "orchestration": "Human-in-the-loop: el sistema propone y RR. HH. aprueba cada decisión de selección, con auditoría de equidad.",
+      "exampleQueries": [
+        {
+          "label": "Campaña de verano en Mallorca",
+          "query": ": Para el Iberostar Selection Playa de Palma (ES-PMI-014), del 01/05/2027 al 31/10/2027, calcula la plantilla necesaria por puesto con la ocupación prevista, réstale los contratos vigentes y los fijos discontinuos de la temporada verano-2027 y crea los borradores de vacante para los camareros de pisos y socorristas que falten, pendientes de aprobación de RR. HH."
+        },
+        {
+          "label": "Refuerzo de invierno en el Caribe",
+          "query": ": ¿Cuántos camareros de pisos, cocineros, animadores, recepcionistas y socorristas de refuerzo necesita el Iberostar Selection Bávaro (DO-PUJ-003) del 01/12/2026 al 30/04/2027 con una ocupación prevista del 88 %, y en qué semanas está el pico?"
+        },
+        {
+          "label": "Cribado explicable con decisión humana",
+          "query": ": Criba las candidaturas de la VAC-2026-0412 (camarero de pisos, ES-PMI-014), explícame criterio por criterio la puntuación de CAND-208817 y registra que la técnica RRHH-0147 decide entrevistarla con el motivo \"experiencia de 3 temporadas y disponibilidad completa\"."
+        },
+        {
+          "label": "Titulación de un socorrista",
+          "query": ": Para la VAC-2026-0455 de socorrista en el Iberostar Waves Cristina, lista las candidaturas que cumplen requisitos y comprueba si CAND-209344 tiene en vigor el título de socorrismo acuático y el certificado DEA antes de proponerla a RR. HH."
+        },
+        {
+          "label": "Incorporación de un camarero de pisos",
+          "query": ": Da de alta a EMP-551203 como camarero de pisos fijo discontinuo en ES-PMI-014 el 01/05/2027 con la tutora EMP-410877, propón sus turnos del 01/05/2027 al 07/05/2027 y asígnale en español el itinerario obligatorio de su puesto."
+        },
+        {
+          "label": "Formación de un cocinero en su idioma",
+          "query": ": Dame el itinerario obligatorio del puesto de cocinero, asígnaselo en portugués (pt) a EMP-551240 con fecha límite 15/05/2027 y dime qué empleados del Iberostar Selection Anthelia (ES-TFS-007) tienen pendiente el certificado de manipulador de alimentos."
+        },
+        {
+          "label": "Auditoría de equidad antes de cerrar la vacante",
+          "query": ": Mide el impacto adverso del cribado de la VAC-2026-0412 por sexo, edad y nacionalidad con la regla de los cuatro quintos, comprueba que las 143 decisiones tienen revisor RRHH-xxxx y explicación archivada, y genera el informe de cumplimiento AI Act del cuarto trimestre de 2026 para el DPO."
+        }
+      ],
+      "description": "Asistente de RR. HH. para los picos de contratación de temporada de una plantilla de más de 40.000\npersonas de 95 nacionalidades: Baleares y Canarias en verano, el Caribe en invierno. Prevé cuántas\npersonas necesita cada hotel, criba de forma explicable las candidaturas del portal Build the Change para\npuestos como camarero de pisos, cocinero, animador, recepcionista o socorrista, prepara la incorporación\ny la formación obligatoria y audita la equidad de todo el proceso.",
+      "purpose": "La selección asistida por IA es un sistema de alto riesgo según el Anexo III del Reglamento (UE)\n2024/1689, y Iberostar ya usa IA en captación (CIO.com, 15/01/2026). Este caso de uso une el ATS de Build\nthe Change, el HRIS y el LMS detrás de un broker que solo propone: cada decisión de selección la toma y\nla firma una persona de RR. HH., cada puntuación se explica y cada campaña pasa una auditoría de sesgos\npor sexo, edad y nacionalidad.",
+      "readme": "# Talento de temporada con revisión humana — `talento-temporada-broker-iberostar`\n\n## Description\nAsistente de RR. HH. para los picos de contratación de temporada de una plantilla de más de 40.000\npersonas de 95 nacionalidades: Baleares y Canarias en verano, el Caribe en invierno. Prevé cuántas\npersonas necesita cada hotel, criba de forma explicable las candidaturas del portal Build the Change para\npuestos como camarero de pisos, cocinero, animador, recepcionista o socorrista, prepara la incorporación\ny la formación obligatoria y audita la equidad de todo el proceso.\n\n## Purpose\nLa selección asistida por IA es un sistema de alto riesgo según el Anexo III del Reglamento (UE)\n2024/1689, y Iberostar ya usa IA en captación (CIO.com, 15/01/2026). Este caso de uso une el ATS de Build\nthe Change, el HRIS y el LMS detrás de un broker que solo propone: cada decisión de selección la toma y\nla firma una persona de RR. HH., cada puntuación se explica y cada campaña pasa una auditoría de sesgos\npor sexo, edad y nacionalidad.\n\n## Goals\n- Publicar las vacantes de temporada con al menos 8 semanas de antelación sobre el pico de ocupación.\n- Reducir a la mitad el tiempo de cribado sin que ningún candidato se descarte sin revisión humana.\n- Explicar cada puntuación con criterios objetivos del puesto y sin datos personales sensibles.\n- Mantener todas las ratios de impacto adverso por encima de 0,80 y documentar las medidas correctoras.\n- Que ningún empleado nuevo empiece su primer turno sin la formación obligatoria de su puesto.\n\n## Audience / Users\n- **Primary persona:** Responsable de RR. HH. / talento de hotel y de región.\n- **Secondary users:** Técnicos de selección, gobernantas y jefes de departamento, formación, DPO y cumplimiento normativo.\n\n## Architecture components\n\n### Broker (YAML-only)\n- `talento-temporada-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `tal-temp-necesidades-plantilla-agent-iberostar` | Previsión de necesidades de plantilla por hotel | prevision-plantilla-temporada, brecha-plantilla-actual, proponer-vacantes |\n| `tal-temp-cribado-candidatos-agent-iberostar` | Cribado explicable de candidaturas | cribar-candidaturas, explicar-puntuacion, verificar-requisitos-legales, registrar-decision-humana |\n| `tal-temp-onboarding-agent-iberostar` | Plan de incorporación y formación | plan-incorporacion, itinerario-formativo, turnos-primera-semana, seguimiento-certificaciones |\n| `tal-temp-auditoria-equidad-agent-iberostar` | Auditoría de sesgos y cumplimiento AI Act | impacto-adverso, control-revision-humana, informe-cumplimiento-ai-act |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `tal-temp-ats-build-change-mcp-iberostar` | Vacantes y candidaturas del portal Build the Change | create_vacancy_draft, list_applications, get_candidate_score_explanation, record_hiring_decision, get_selection_outcomes |\n| `tal-temp-hris-plantilla-mcp-iberostar` | Plantilla, contratos y turnos | get_occupancy_forecast, get_headcount, create_employee_onboarding, propose_shift_schedule |\n| `tal-temp-lms-formacion-mcp-iberostar` | Itinerarios y certificaciones de formación | get_mandatory_curriculum, assign_learning_path, get_certification_status |\n\n### Shared infrastructure\n- LLM provider: `open-ai-tal-temp-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/talento-temporada-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **Campaña de verano en Mallorca** (tal-temp-necesidades-plantilla → tal-temp-hris-plantilla, tal-temp-ats-build-change): Para el Iberostar Selection Playa de Palma (ES-PMI-014), del 01/05/2027 al 31/10/2027, calcula la plantilla necesaria por puesto con la ocupación prevista, réstale los contratos vigentes y los fijos discontinuos de la temporada verano-2027 y crea los borradores de vacante para los camareros de pisos y socorristas que falten, pendientes de aprobación de RR. HH.\n2. **Refuerzo de invierno en el Caribe** (tal-temp-necesidades-plantilla → tal-temp-hris-plantilla): ¿Cuántos camareros de pisos, cocineros, animadores, recepcionistas y socorristas de refuerzo necesita el Iberostar Selection Bávaro (DO-PUJ-003) del 01/12/2026 al 30/04/2027 con una ocupación prevista del 88 %, y en qué semanas está el pico?\n3. **Cribado explicable con decisión humana** (tal-temp-cribado-candidatos → tal-temp-ats-build-change): Criba las candidaturas de la VAC-2026-0412 (camarero de pisos, ES-PMI-014), explícame criterio por criterio la puntuación de CAND-208817 y registra que la técnica RRHH-0147 decide entrevistarla con el motivo \"experiencia de 3 temporadas y disponibilidad completa\".\n4. **Titulación de un socorrista** (tal-temp-cribado-candidatos → tal-temp-ats-build-change): Para la VAC-2026-0455 de socorrista en el Iberostar Waves Cristina, lista las candidaturas que cumplen requisitos y comprueba si CAND-209344 tiene en vigor el título de socorrismo acuático y el certificado DEA antes de proponerla a RR. HH.\n5. **Incorporación de un camarero de pisos** (tal-temp-onboarding → tal-temp-hris-plantilla, tal-temp-lms-formacion): Da de alta a EMP-551203 como camarero de pisos fijo discontinuo en ES-PMI-014 el 01/05/2027 con la tutora EMP-410877, propón sus turnos del 01/05/2027 al 07/05/2027 y asígnale en español el itinerario obligatorio de su puesto.\n6. **Formación de un cocinero en su idioma** (tal-temp-onboarding → tal-temp-lms-formacion): Dame el itinerario obligatorio del puesto de cocinero, asígnaselo en portugués (pt) a EMP-551240 con fecha límite 15/05/2027 y dime qué empleados del Iberostar Selection Anthelia (ES-TFS-007) tienen pendiente el certificado de manipulador de alimentos.\n7. **Auditoría de equidad antes de cerrar la vacante** (tal-temp-auditoria-equidad → tal-temp-ats-build-change): Mide el impacto adverso del cribado de la VAC-2026-0412 por sexo, edad y nacionalidad con la regla de los cuatro quintos, comprueba que las 143 decisiones tienen revisor RRHH-xxxx y explicación archivada, y genera el informe de cumplimiento AI Act del cuarto trimestre de 2026 para el DPO.\n\n## Orchestration narrative\nEl broker sigue un patrón human-in-the-loop: el sistema propone y RR. HH. decide. Para planificar una\ncampaña, el agente de necesidades cruza la previsión de ocupación y la plantilla del HRIS y deja en el\nATS borradores de vacante VAC-2026-xxxx sin publicar. El agente de cribado puntúa las candidaturas solo\ncon criterios objetivos del puesto, explica cada puntuación y registra la decisión del revisor; nunca\ndescarta por su cuenta. Una vez contratada la persona, el agente de onboarding la da de alta en el HRIS,\nle propone los turnos de la primera semana y le asigna la formación obligatoria en su idioma en el LMS.\nAntes de cerrar cualquier vacante, el agente de auditoría mide el impacto adverso y la tasa de revisión\nhumana, y el broker avisa a RR. HH. si alguna ratio baja de 0,80.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-tal-temp-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "talento-temporada-broker-iberostar",
+        "brokerLabel": "Talento de temporada con revisión humana – Agent Network",
+        "brokerDescription": "Asistente de RR. HH. de Iberostar para los picos de contratación de temporada. Prevé plantilla, criba candidaturas de Build the Change de forma explicable, prepara la incorporación y audita la equidad; toda decisión de selección la aprueba una persona de RR. HH., como exige el Anexo III del AI Act.",
+        "brokerUrlTemplate": "${ingressgw.url}/talento-temporada-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa tal-temp-necesidades-plantilla-agent-iberostar con tal-temp-hris-plantilla-mcp-iberostar para prever la plantilla de temporada y calcular la brecha frente a contratos y fijos discontinuos.",
+          "Usa tal-temp-necesidades-plantilla-agent-iberostar con tal-temp-ats-build-change-mcp-iberostar para crear borradores de vacante VAC-2026-xxxx, que siempre quedan pendientes de aprobación de RR. HH.",
+          "Usa tal-temp-cribado-candidatos-agent-iberostar con tal-temp-ats-build-change-mcp-iberostar para cribar candidaturas, explicar puntuaciones, verificar titulaciones y registrar decisiones humanas.",
+          "Usa tal-temp-onboarding-agent-iberostar con tal-temp-hris-plantilla-mcp-iberostar para el alta del empleado y los turnos de la primera semana.",
+          "Usa tal-temp-onboarding-agent-iberostar con tal-temp-lms-formacion-mcp-iberostar para asignar itinerarios formativos obligatorios y seguir certificaciones.",
+          "Usa tal-temp-auditoria-equidad-agent-iberostar con tal-temp-ats-build-change-mcp-iberostar para medir el impacto adverso, controlar la revisión humana y generar el informe AI Act.",
+          "Nunca descartes, avances ni contrates a un candidato sin una decisión registrada por un revisor RRHH-xxxx; el sistema solo propone.",
+          "Antes de cerrar una vacante, pide a tal-temp-auditoria-equidad-agent-iberostar el análisis de impacto adverso y avisa a RR. HH. si alguna ratio baja de 0,80."
+        ],
+        "skills": [
+          {
+            "id": "planificar-campana-temporada",
+            "name": "Planificar la campaña de temporada",
+            "description": "Calcula la plantilla necesaria por hotel y periodo, la compara con la plantilla y los fijos discontinuos del HRIS y propone las vacantes que RR. HH. debe aprobar.",
+            "examples": [
+              "Planifica la campaña de verano 2027 del Iberostar Selection Playa de Palma (ES-PMI-014) del 1 de mayo al 31 de octubre y propón las vacantes que falten",
+              "¿Cuántos refuerzos necesita el Iberostar Selection Bávaro (DO-PUJ-003) para la temporada de invierno de diciembre de 2026 a abril de 2027?"
+            ],
+            "tags": [
+              "plantilla",
+              "temporada",
+              "vacantes"
+            ]
+          },
+          {
+            "id": "cribado-explicable",
+            "name": "Cribado explicable con revisión humana",
+            "description": "Criba las candidaturas de una vacante VAC-2026-xxxx, explica la puntuación de cada candidato y registra la decisión final del técnico de RR. HH.",
+            "examples": [
+              "Criba las candidaturas de la VAC-2026-0412 de camarero de pisos y explícame la puntuación de CAND-208817",
+              "Registra que la técnica RRHH-0147 aprueba la entrevista de CAND-208817 en la VAC-2026-0412"
+            ],
+            "tags": [
+              "cribado",
+              "explicabilidad",
+              "human-in-the-loop"
+            ]
+          },
+          {
+            "id": "incorporacion-formacion",
+            "name": "Incorporación y formación",
+            "description": "Prepara el alta, los turnos de la primera semana y el itinerario formativo obligatorio de cada nuevo empleado de temporada en su idioma.",
+            "examples": [
+              "Prepara la incorporación de EMP-551203, camarero de pisos, el 1 de mayo de 2027 en ES-PMI-014 con la tutora EMP-410877",
+              "Asigna el itinerario obligatorio de cocinero a EMP-551240 en portugués"
+            ],
+            "tags": [
+              "onboarding",
+              "formacion",
+              "turnos"
+            ]
+          },
+          {
+            "id": "auditoria-ai-act",
+            "name": "Auditoría de equidad AI Act",
+            "description": "Mide el impacto adverso por sexo, edad y nacionalidad, comprueba la revisión humana de cada decisión y genera el informe de cumplimiento del sistema de alto riesgo.",
+            "examples": [
+              "Mide el impacto adverso del cribado de la VAC-2026-0412 y comprueba que todas sus decisiones tienen revisión humana",
+              "Genera el informe de cumplimiento AI Act de la selección del cuarto trimestre de 2026"
+            ],
+            "tags": [
+              "ai-act",
+              "sesgos",
+              "cumplimiento"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "tal-temp-necesidades-plantilla-agent-iberostar",
+            "label": "Necesidades de plantilla",
+            "platform": "claude platform",
+            "protocol": "a2a"
+          },
+          {
+            "name": "tal-temp-cribado-candidatos-agent-iberostar",
+            "label": "Cribado de candidatos",
+            "platform": "microsoft copilot",
+            "protocol": "a2a"
+          },
+          {
+            "name": "tal-temp-onboarding-agent-iberostar",
+            "label": "Incorporación y formación",
+            "platform": "vertex ai",
+            "protocol": "a2a"
+          },
+          {
+            "name": "tal-temp-auditoria-equidad-agent-iberostar",
+            "label": "Auditoría de equidad",
+            "platform": "agentforce",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "tal-temp-ats-build-change-mcp-iberostar",
+            "label": "ATS – Build the Change",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "tal-temp-hris-plantilla-mcp-iberostar",
+            "label": "HRIS – Plantilla y turnos",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "tal-temp-lms-formacion-mcp-iberostar",
+            "label": "LMS – Formación",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    },
+    {
+      "slug": "energia-mantenimiento-predictivo",
+      "title": "Energía y mantenimiento predictivo",
+      "shortDescription": "Asistente para la dirección técnica de los cerca de 80 hoteles de Iberostar. Vigila la telemetría de los\nBMS de climatización (enfriadoras, fan-coils, UTA), ACS y piscinas, detecta anomalías de consumo y caídas\nde COP, controla la prevención de Legionella según el RD 487/2022 y convierte cada alerta en una orden de\ntrabajo en la GMAO, midiendo su impacto sobre el objetivo de Wave of Change de −35 % de energía en 2030.",
+      "persona": "Director/a técnico / mantenimiento y energía",
+      "businessPain": "El objetivo de −35 % de energía en 2030 y el control de Legionella dependen de BMS heterogéneos y mantenimiento reactivo (brief §5, §6).",
+      "orchestration": "Orientado a eventos: detección de anomalía → diagnóstico → orden de trabajo, con seguimiento del objetivo 2030.",
+      "exampleQueries": [
+        {
+          "label": "De la anomalía a la orden",
+          "query": ": En el Iberostar Selection Playa de Palma (ES-PMI-SPP), compara el consumo de la enfriadora CHL-PMA-02 (contador CNT-PMA-CHL-02) del 09/11/2026 al 15/11/2026 con su línea base 2019, calcula su COP real frente al nominal de 5,6, valora el exceso con el contrato ES-PMI-ELEC-2026 y su perfil horario proyectado a 30 días y abre una orden correctiva de prioridad alta para el 19/11/2026 con la referencia ANM-2026-1187."
+        },
+        {
+          "label": "Positivo de Legionella",
+          "query": ": Para el muestreo MUE-2026-0874 del Iberostar Selection Playa de Palma (ES-PMI-SPP, ducha de la habitación 412, 1.200 UFC/l), revisa las temperaturas de retorno del montante M4 del 01/11/2026 al 16/11/2026, indica las medidas que exige el RD 487/2022 y crea una orden de tipo legionella urgente sobre MON-PMA-ACS-M4 para el 18/11/2026."
+        },
+        {
+          "label": "Temperaturas y cloro de la semana",
+          "query": ": En el Iberostar Selection Playa de Palma (ES-PMI-SPP), lista los acumuladores de ACS que hayan estado por debajo de 60 °C entre el 10/11/2026 y el 16/11/2026 y dame las lecturas de cloro libre y pH de la torre TRF-PMA-01 del 17/11/2026, con las que estén fuera del rango de 0,5-2 ppm."
+        },
+        {
+          "label": "Turno de mantenimiento y preventivos",
+          "query": ": Prioriza las órdenes abiertas del hotel ES-PMI-SPP para el turno del 18/11/2026 con 4 técnicos y 32 h, poniendo primero el riesgo sanitario; después dame el plan preventivo de climatización de 2026-12 y confirma en el BMS que el COP de CHL-PMA-02 tras la orden OT-2026-48213 supera 5,0."
+        },
+        {
+          "label": "Progreso del objetivo 2030",
+          "query": ": Dame la reducción energética de enero a octubre de 2026 de los 11 hoteles de Baleares frente a la línea base 2019 y la senda del −35 % de 2030, el ranking de kWh/m² del clúster y los MWh ahorrados por órdenes de mantenimiento predictivo cerradas con verificación de 72 h."
+        },
+        {
+          "label": "Simulación y contratación",
+          "query": ": Simula sustituir CHL-PMA-02 por una enfriadora de COP 6,2 en el Iberostar Selection Playa de Palma con 1.420 MWh frigoríficos al año y 136,40 €/MWh, y comprueba si podemos bajar la potencia contratada en P1 del contrato ES-PMI-ELEC-2026 de 1.450 kW a 1.200 kW sin excesos."
+        }
+      ],
+      "description": "Asistente para la dirección técnica de los cerca de 80 hoteles de Iberostar. Vigila la telemetría de los\nBMS de climatización (enfriadoras, fan-coils, UTA), ACS y piscinas, detecta anomalías de consumo y caídas\nde COP, controla la prevención de Legionella según el RD 487/2022 y convierte cada alerta en una orden de\ntrabajo en la GMAO, midiendo su impacto sobre el objetivo de Wave of Change de −35 % de energía en 2030.",
+      "purpose": "El objetivo de −35 % de consumo energético en 2030 y el control de Legionella dependen hoy de BMS\nheterogéneos y de un mantenimiento reactivo: las anomalías se descubren en la factura y los incumplimientos\nde temperatura o cloro, en la auditoría. Este caso de uso, en la línea del trabajo de IA con Sener para la\neficiencia energética (abril de 2025), une BMS, GMAO, tarifas y registros de Legionella detrás de un broker\norientado a eventos: detección de anomalía, diagnóstico, orden de trabajo y seguimiento del objetivo 2030.",
+      "readme": "# Energía y mantenimiento predictivo — `energia-mantenimiento-predictivo-broker-iberostar`\n\n## Description\nAsistente para la dirección técnica de los cerca de 80 hoteles de Iberostar. Vigila la telemetría de los\nBMS de climatización (enfriadoras, fan-coils, UTA), ACS y piscinas, detecta anomalías de consumo y caídas\nde COP, controla la prevención de Legionella según el RD 487/2022 y convierte cada alerta en una orden de\ntrabajo en la GMAO, midiendo su impacto sobre el objetivo de Wave of Change de −35 % de energía en 2030.\n\n## Purpose\nEl objetivo de −35 % de consumo energético en 2030 y el control de Legionella dependen hoy de BMS\nheterogéneos y de un mantenimiento reactivo: las anomalías se descubren en la factura y los incumplimientos\nde temperatura o cloro, en la auditoría. Este caso de uso, en la línea del trabajo de IA con Sener para la\neficiencia energética (abril de 2025), une BMS, GMAO, tarifas y registros de Legionella detrás de un broker\norientado a eventos: detección de anomalía, diagnóstico, orden de trabajo y seguimiento del objetivo 2030.\n\n## Goals\n- Detectar en menos de 24 h cualquier desviación de consumo superior al 15 % sobre la línea base ajustada.\n- Pasar de mantenimiento reactivo a predictivo, adelantando preventivos de equipos con degradación de COP.\n- Garantizar el 100 % de cumplimiento del RD 487/2022: ACS ≥ 60 °C en acumulación, ≥ 50 °C en retorno, cloro libre en rango y muestreos al día.\n- Cuantificar en kWh y euros el sobrecoste de cada anomalía y el ahorro verificado de cada orden cerrada.\n- Mantener la cartera en la senda del −35 % de energía en 2030 y alimentar el informe de progreso de Wave of Change.\n\n## Audience / Users\n- **Primary persona:** Director/a técnico / mantenimiento y energía de hotel y de región.\n- **Secondary users:** Jefes de mantenimiento, técnicos de climatización, responsables de calidad y prevención de Legionella, empresas de tratamiento de agua y la oficina de la CSO.\n\n## Architecture components\n\n### Broker (YAML-only)\n- `energia-mantenimiento-predictivo-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `ener-mant-anomalias-energeticas-agent-iberostar` | Detección de anomalías de consumo | detectar-anomalias-consumo, diagnosticar-rendimiento-enfriadora, analizar-acs-piscinas, cuantificar-sobrecoste |\n| `ener-mant-legionella-agua-agent-iberostar` | Control de Legionella e instalaciones de agua (RD 487/2022) | verificar-temperaturas-acs, controlar-cloro-desinfeccion, gestionar-muestreos-legionella |\n| `ener-mant-ordenes-trabajo-agent-iberostar` | Órdenes de trabajo preventivas y correctivas | crear-orden-desde-alerta, priorizar-backlog-mantenimiento, planificar-preventivos, seguimiento-cierre-ordenes |\n| `ener-mant-eficiencia-2030-agent-iberostar` | Seguimiento del objetivo −35 % de energía en 2030 | progreso-objetivo-2030, intensidad-energetica-hoteles, simular-medidas-ahorro, optimizar-contratacion-energia, informe-ahorros-verificados |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `ener-mant-bms-edificio-mcp-iberostar` | Telemetría de climatización, agua y energía | get_meter_readings, get_chiller_performance, get_fancoil_status, get_water_system_telemetry, get_consumption_baseline |\n| `ener-mant-gmao-mcp-iberostar` | Activos, órdenes y planes preventivos | get_asset, create_work_order, list_work_orders, get_preventive_plan |\n| `ener-mant-tarifas-energia-mcp-iberostar` | Tarifas y precios de energía | get_supply_contract, get_hourly_prices, calculate_energy_cost |\n| `ener-mant-control-legionella-mcp-iberostar` | Registros de temperaturas, cloro y muestreos | get_temperature_log, get_disinfection_readings, get_legionella_samples |\n\n### Shared infrastructure\n- LLM provider: `open-ai-ener-mant-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/energia-mantenimiento-predictivo-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **De la anomalía a la orden** (ener-mant-anomalias-energeticas → ener-mant-bms-edificio, ener-mant-tarifas-energia; ener-mant-ordenes-trabajo → ener-mant-gmao): En el Iberostar Selection Playa de Palma (ES-PMI-SPP), compara el consumo de la enfriadora CHL-PMA-02 (contador CNT-PMA-CHL-02) del 09/11/2026 al 15/11/2026 con su línea base 2019, calcula su COP real frente al nominal de 5,6, valora el exceso con el contrato ES-PMI-ELEC-2026 y su perfil horario proyectado a 30 días y abre una orden correctiva de prioridad alta para el 19/11/2026 con la referencia ANM-2026-1187.\n2. **Positivo de Legionella** (ener-mant-legionella-agua → ener-mant-control-legionella; ener-mant-ordenes-trabajo → ener-mant-gmao): Para el muestreo MUE-2026-0874 del Iberostar Selection Playa de Palma (ES-PMI-SPP, ducha de la habitación 412, 1.200 UFC/l), revisa las temperaturas de retorno del montante M4 del 01/11/2026 al 16/11/2026, indica las medidas que exige el RD 487/2022 y crea una orden de tipo legionella urgente sobre MON-PMA-ACS-M4 para el 18/11/2026.\n3. **Temperaturas y cloro de la semana** (ener-mant-legionella-agua → ener-mant-control-legionella): En el Iberostar Selection Playa de Palma (ES-PMI-SPP), lista los acumuladores de ACS que hayan estado por debajo de 60 °C entre el 10/11/2026 y el 16/11/2026 y dame las lecturas de cloro libre y pH de la torre TRF-PMA-01 del 17/11/2026, con las que estén fuera del rango de 0,5-2 ppm.\n4. **Turno de mantenimiento y preventivos** (ener-mant-ordenes-trabajo → ener-mant-gmao, ener-mant-bms-edificio): Prioriza las órdenes abiertas del hotel ES-PMI-SPP para el turno del 18/11/2026 con 4 técnicos y 32 h, poniendo primero el riesgo sanitario; después dame el plan preventivo de climatización de 2026-12 y confirma en el BMS que el COP de CHL-PMA-02 tras la orden OT-2026-48213 supera 5,0.\n5. **Progreso del objetivo 2030** (ener-mant-eficiencia-2030 → ener-mant-bms-edificio, ener-mant-gmao): Dame la reducción energética de enero a octubre de 2026 de los 11 hoteles de Baleares frente a la línea base 2019 y la senda del −35 % de 2030, el ranking de kWh/m² del clúster y los MWh ahorrados por órdenes de mantenimiento predictivo cerradas con verificación de 72 h.\n6. **Simulación y contratación** (ener-mant-eficiencia-2030 → ener-mant-tarifas-energia, ener-mant-bms-edificio): Simula sustituir CHL-PMA-02 por una enfriadora de COP 6,2 en el Iberostar Selection Playa de Palma con 1.420 MWh frigoríficos al año y 136,40 €/MWh, y comprueba si podemos bajar la potencia contratada en P1 del contrato ES-PMI-ELEC-2026 de 1.450 kW a 1.200 kW sin excesos.\n\n## Orchestration narrative\nEl broker funciona orientado a eventos. Cuando el BMS muestra una desviación, llama al agente de anomalías,\nque consulta contadores, rendimiento de enfriadoras, fan-coils, ACS y piscinas en el BMS, diagnostica la\ncausa probable y valora el sobrecoste con las tarifas en €/MWh. Con ese diagnóstico, el agente de órdenes de\ntrabajo crea o prioriza la orden en la GMAO y, al terminar, verifica el resultado en el BMS antes de cerrarla.\nLas alertas sanitarias siguen el mismo camino con el agente de Legionella, que revisa temperaturas, cloro\nlibre y muestreos según el RD 487/2022, y tienen siempre prioridad urgente sobre las energéticas. El agente\nde eficiencia 2030 cierra el ciclo: suma los ahorros verificados, compara hoteles, simula inversiones y\nmide el progreso hacia el −35 % de energía en 2030 para el informe de Wave of Change.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-ener-mant-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "energia-mantenimiento-predictivo-broker-iberostar",
+        "brokerLabel": "Energía y mantenimiento predictivo – Agent Network",
+        "brokerDescription": "Asistente de la dirección técnica de los hoteles Iberostar. Detecta anomalías de consumo en el BMS, vigila el control de Legionella según el RD 487/2022, convierte cada alerta en una orden de trabajo en la GMAO y sigue el objetivo de Wave of Change de −35 % de energía en 2030.",
+        "brokerUrlTemplate": "${ingressgw.url}/energia-mantenimiento-predictivo-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa ener-mant-anomalias-energeticas-agent-iberostar con ener-mant-bms-edificio-mcp-iberostar para detectar anomalías de consumo, diagnosticar el COP de enfriadoras y bombas de calor y analizar ACS, piscinas y fan-coils.",
+          "Usa ener-mant-anomalias-energeticas-agent-iberostar con ener-mant-tarifas-energia-mcp-iberostar para cuantificar en euros el sobrecoste de una anomalía y proyectarlo a 30 días.",
+          "Usa ener-mant-legionella-agua-agent-iberostar con ener-mant-control-legionella-mcp-iberostar para temperaturas de ACS, cloro libre, pH y muestreos de Legionella según el RD 487/2022.",
+          "Usa ener-mant-ordenes-trabajo-agent-iberostar con ener-mant-gmao-mcp-iberostar para crear, priorizar, planificar y cerrar órdenes de trabajo correctivas, preventivas y de Legionella.",
+          "Usa ener-mant-ordenes-trabajo-agent-iberostar con ener-mant-bms-edificio-mcp-iberostar para verificar en el BMS el resultado de una orden antes de cerrarla.",
+          "Usa ener-mant-eficiencia-2030-agent-iberostar con ener-mant-bms-edificio-mcp-iberostar y ener-mant-tarifas-energia-mcp-iberostar para el progreso hacia el −35 % de 2030, la intensidad energética, la simulación de medidas y la optimización de potencias y horarios.",
+          "Usa ener-mant-eficiencia-2030-agent-iberostar con ener-mant-gmao-mcp-iberostar para agregar los ahorros verificados de las órdenes cerradas en el informe de Wave of Change.",
+          "Ante una anomalía o una alerta, encadena siempre detección, diagnóstico y orden de trabajo, y termina con el impacto sobre el objetivo 2030.",
+          "Cualquier positivo de Legionella o temperatura de acumulación por debajo de 60 °C tiene prioridad sobre las órdenes energéticas y se trata como urgente."
+        ],
+        "skills": [
+          {
+            "id": "anomalia-a-orden",
+            "name": "De la anomalía a la orden de trabajo",
+            "description": "Detecta una anomalía de consumo o de rendimiento en el BMS, diagnostica su causa, cuantifica el sobrecoste en euros y abre la orden de trabajo correspondiente en la GMAO.",
+            "examples": [
+              "La enfriadora CHL-PMA-02 del Iberostar Selection Playa de Palma consume de más desde el 2 de noviembre de 2026, diagnostica la causa, dime cuánto nos cuesta y abre la orden de trabajo",
+              "Revisa el consumo nocturno del hotel MX-CUN-PMA de los últimos 7 días y abre órdenes para lo que supere un 15 % la línea base"
+            ],
+            "tags": [
+              "anomalias",
+              "diagnostico",
+              "gmao"
+            ]
+          },
+          {
+            "id": "cumplimiento-legionella",
+            "name": "Cumplimiento de Legionella",
+            "description": "Revisa temperaturas de ACS, cloro libre y muestreos frente al RD 487/2022 y lanza las medidas correctoras y órdenes urgentes cuando hay incumplimientos o positivos.",
+            "examples": [
+              "El muestreo MUE-2026-0874 del Iberostar Selection Playa de Palma ha dado 1.200 UFC/l en la ducha 412, dime qué hacer y abre la orden de desinfección",
+              "¿Ha bajado de 60 °C algún acumulador de ACS del Iberostar Selection Playa de Palma esta semana?"
+            ],
+            "tags": [
+              "legionella",
+              "rd-487-2022",
+              "acs"
+            ]
+          },
+          {
+            "id": "planificar-mantenimiento",
+            "name": "Planificar el mantenimiento",
+            "description": "Prioriza el backlog de órdenes y planifica los preventivos del mes, adelantando los de activos con degradación detectada en el BMS.",
+            "examples": [
+              "Prioriza las órdenes abiertas del Iberostar Selection Playa de Palma para el turno de mañana",
+              "Planifica los preventivos de climatización del Iberostar Selection Playa de Palma para diciembre de 2026"
+            ],
+            "tags": [
+              "preventivo",
+              "backlog",
+              "planificacion"
+            ]
+          },
+          {
+            "id": "seguimiento-objetivo-2030",
+            "name": "Seguimiento del objetivo 2030",
+            "description": "Mide el progreso hacia el −35 % de energía en 2030, compara hoteles, simula medidas de ahorro y optimiza la contratación con tarifas en €/MWh.",
+            "examples": [
+              "¿Cómo vamos con el objetivo de −35 % de energía en 2030 en los hoteles de Baleares?",
+              "Simula sustituir la enfriadora CHL-PMA-02 por una de COP 6,2 y dime cuánto aporta al objetivo 2030"
+            ],
+            "tags": [
+              "objetivo-2030",
+              "wave-of-change",
+              "eficiencia"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "ener-mant-anomalias-energeticas-agent-iberostar",
+            "label": "Anomalías energéticas",
+            "platform": "openai",
+            "protocol": "a2a"
+          },
+          {
+            "name": "ener-mant-legionella-agua-agent-iberostar",
+            "label": "Legionella e instalaciones de agua",
+            "platform": "claude platform",
+            "protocol": "a2a"
+          },
+          {
+            "name": "ener-mant-ordenes-trabajo-agent-iberostar",
+            "label": "Órdenes de trabajo",
+            "platform": "microsoft copilot",
+            "protocol": "a2a"
+          },
+          {
+            "name": "ener-mant-eficiencia-2030-agent-iberostar",
+            "label": "Eficiencia 2030",
+            "platform": "vertex ai",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "ener-mant-bms-edificio-mcp-iberostar",
+            "label": "BMS del edificio",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "ener-mant-gmao-mcp-iberostar",
+            "label": "GMAO",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "ener-mant-tarifas-energia-mcp-iberostar",
+            "label": "Tarifas de energía",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "ener-mant-control-legionella-mcp-iberostar",
+            "label": "Control de Legionella",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    },
+    {
+      "slug": "recuperacion-reputacion",
+      "title": "Recuperación de reputación del huésped",
+      "shortDescription": "Bucle cerrado de reputación para los guest relations managers de Iberostar Beachfront Resorts. Escucha a\ndiario las reseñas de TripAdvisor, Google y Booking y las encuestas post-estancia (NPS y GRI), diagnostica\nla causa raíz de cada queja por departamento (A&B, pisos, recepción, mantenimiento y animación) y ejecuta\nla recuperación de servicio: respuesta pública, contacto privado y compensación registrada en el CRM del\nhuésped, con seguimiento hasta el cierre.",
+      "persona": "Guest relations manager",
+      "businessPain": "Las reseñas negativas se detectan tarde, sin causa raíz y sin recuperación de servicio, en un sector donde Iberostar lidera la reputación digital (brief §5, §7).",
+      "orchestration": "Bucle cerrado: escucha → causa raíz → acción de recuperación → seguimiento de cierre.",
+      "exampleQueries": [
+        {
+          "label": "Alertas del día con repetidores primero",
+          "query": ": Dame las reseñas negativas (nota de 2/5 o menos) sin responder de TripAdvisor y Google del Iberostar Selection Paraíso Maya (MX-PMAYA) entre el 15/11/2026 y el 17/11/2026 y ordénalas poniendo primero a los huéspedes repetidores con más de 3 estancias."
+        },
+        {
+          "label": "Caída de NPS y causa raíz",
+          "query": ": Compara el NPS y el GRI de MX-PMAYA de octubre de 2026 con septiembre y prepara el informe de causa raíz de la caída por departamento, con patrones de al menos 8 menciones desde el 01/10/2026 y acciones correctivas con responsable y plazo."
+        },
+        {
+          "label": "Diagnóstico de una reseña concreta",
+          "query": ": ¿A qué departamento corresponde la queja de la reseña REV-48197 y se registró alguna incidencia durante la estancia IBS-7739904 del huésped GST-322871 en la habitación 3214? Indica el tiempo de resolución frente al SLA de 4 horas."
+        },
+        {
+          "label": "Recuperación completa de una repetidora",
+          "query": ": Para la reseña REV-48213 de la huésped repetidora GST-310584 (Star Prestige Gold, reserva IBS-7741877), redacta la respuesta pública en TripAdvisor en español firmada por María Torres, Guest Relations Manager, déjala en borrador para el director y registra un upgrade a Junior Suite Ocean View de hasta 410 USD como compensación."
+        },
+        {
+          "label": "Crédito y contacto privado",
+          "query": ": Registra en el CRM un crédito de 150 USD para la próxima estancia del huésped GST-322871 por la reseña REV-48197, válido hasta el 31/12/2027, y envíale la disculpa por WhatsApp registrando la interacción en el caso CASE-20944."
+        },
+        {
+          "label": "Seguimiento de cierre",
+          "query": ": ¿En qué estado está el caso de recuperación CASE-20931 de la reseña REV-48213 de GST-310584 y cuál es la tasa de recuperación de servicio de MX-PMAYA entre el 01/11/2026 y el 17/11/2026?"
+        },
+        {
+          "label": "Patrones de pisos en Playa de Palma",
+          "query": ": Busca patrones recurrentes del departamento de pisos en el Iberostar Waves Cristina (ES-WCRIS) entre el 20/10/2026 y el 16/11/2026 con un umbral de 8 menciones y dime qué reseñas de Booking de nota inferior a 5/10 los ilustran."
+        }
+      ],
+      "description": "Bucle cerrado de reputación para los guest relations managers de Iberostar Beachfront Resorts. Escucha a\ndiario las reseñas de TripAdvisor, Google y Booking y las encuestas post-estancia (NPS y GRI), diagnostica\nla causa raíz de cada queja por departamento (A&B, pisos, recepción, mantenimiento y animación) y ejecuta\nla recuperación de servicio: respuesta pública, contacto privado y compensación registrada en el CRM del\nhuésped, con seguimiento hasta el cierre.",
+      "purpose": "Iberostar y Meliá lideran la reputación digital del sector (Última Hora, 08/10/2026), pero hoy las\nreseñas negativas se detectan tarde, se responden sin conocer la causa raíz y la recuperación depende de\nla memoria de cada equipo. Este caso de uso une el agregador de reseñas y encuestas con el CRM del huésped\ndetrás de un broker que prioriza a los huéspedes repetidores, señala al departamento responsable y deja\ncada caso trazado desde la alerta hasta el cierre.",
+      "readme": "# Recuperación de reputación del huésped — `recuperacion-reputacion-broker-iberostar`\n\n## Description\nBucle cerrado de reputación para los guest relations managers de Iberostar Beachfront Resorts. Escucha a\ndiario las reseñas de TripAdvisor, Google y Booking y las encuestas post-estancia (NPS y GRI), diagnostica\nla causa raíz de cada queja por departamento (A&B, pisos, recepción, mantenimiento y animación) y ejecuta\nla recuperación de servicio: respuesta pública, contacto privado y compensación registrada en el CRM del\nhuésped, con seguimiento hasta el cierre.\n\n## Purpose\nIberostar y Meliá lideran la reputación digital del sector (Última Hora, 08/10/2026), pero hoy las\nreseñas negativas se detectan tarde, se responden sin conocer la causa raíz y la recuperación depende de\nla memoria de cada equipo. Este caso de uso une el agregador de reseñas y encuestas con el CRM del huésped\ndetrás de un broker que prioriza a los huéspedes repetidores, señala al departamento responsable y deja\ncada caso trazado desde la alerta hasta el cierre.\n\n## Goals\n- Detectar el 100 % de las reseñas negativas y detractores en menos de 2 horas y responder en público en menos de 24 horas.\n- Atribuir cada queja a un departamento con evidencias y detectar patrones antes de que afecten al NPS mensual.\n- Recuperar al menos el 70 % de los casos (reseña mejorada o NPS posterior igual o superior a 7).\n- Proteger el valor de los huéspedes repetidores con compensaciones proporcionales y dentro de política.\n- Convertir las causas raíz recurrentes en acciones correctivas con responsable y plazo.\n\n## Audience / Users\n- **Primary persona:** Guest relations manager de resort.\n- **Secondary users:** Director del hotel, jefes de recepción, pisos, A&B, mantenimiento y animación, y el equipo corporativo de calidad y reputación.\n\n## Architecture components\n\n### Broker (YAML-only)\n- `recuperacion-reputacion-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `rep-huesp-escucha-resenas-agent-iberostar` | Escucha de reseñas y encuestas | detectar-resenas-negativas, analizar-encuestas-nps, priorizar-repetidores |\n| `rep-huesp-causa-raiz-agent-iberostar` | Diagnóstico de causa raíz por departamento | clasificar-departamento, detectar-patrones-recurrentes, cruzar-incidencias-estancia, informe-causa-raiz |\n| `rep-huesp-recuperacion-servicio-agent-iberostar` | Acciones de recuperación y respuesta | redactar-respuesta-publica, proponer-compensacion, contacto-privado-huesped, seguimiento-cierre |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `rep-huesp-resenas-encuestas-mcp-iberostar` | Reseñas online y encuestas post-estancia | search_reviews, get_review, get_survey_results, get_topic_breakdown, post_review_response |\n| `rep-huesp-crm-huesped-mcp-iberostar` | Perfil, historial y compensaciones del huésped | get_guest_profile, get_stay_history, record_compensation, log_recovery_case |\n\n### Shared infrastructure\n- LLM provider: `open-ai-rep-huesp-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/recuperacion-reputacion-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **Alertas del día con repetidores primero** (rep-huesp-escucha-resenas → rep-huesp-resenas-encuestas, rep-huesp-crm-huesped): Dame las reseñas negativas (nota de 2/5 o menos) sin responder de TripAdvisor y Google del Iberostar Selection Paraíso Maya (MX-PMAYA) entre el 15/11/2026 y el 17/11/2026 y ordénalas poniendo primero a los huéspedes repetidores con más de 3 estancias.\n2. **Caída de NPS y causa raíz** (rep-huesp-escucha-resenas → rep-huesp-resenas-encuestas, rep-huesp-causa-raiz → rep-huesp-resenas-encuestas): Compara el NPS y el GRI de MX-PMAYA de octubre de 2026 con septiembre y prepara el informe de causa raíz de la caída por departamento, con patrones de al menos 8 menciones desde el 01/10/2026 y acciones correctivas con responsable y plazo.\n3. **Diagnóstico de una reseña concreta** (rep-huesp-causa-raiz → rep-huesp-resenas-encuestas, rep-huesp-crm-huesped): ¿A qué departamento corresponde la queja de la reseña REV-48197 y se registró alguna incidencia durante la estancia IBS-7739904 del huésped GST-322871 en la habitación 3214? Indica el tiempo de resolución frente al SLA de 4 horas.\n4. **Recuperación completa de una repetidora** (rep-huesp-recuperacion-servicio → rep-huesp-resenas-encuestas, rep-huesp-crm-huesped): Para la reseña REV-48213 de la huésped repetidora GST-310584 (Star Prestige Gold, reserva IBS-7741877), redacta la respuesta pública en TripAdvisor en español firmada por María Torres, Guest Relations Manager, déjala en borrador para el director y registra un upgrade a Junior Suite Ocean View de hasta 410 USD como compensación.\n5. **Crédito y contacto privado** (rep-huesp-recuperacion-servicio → rep-huesp-crm-huesped): Registra en el CRM un crédito de 150 USD para la próxima estancia del huésped GST-322871 por la reseña REV-48197, válido hasta el 31/12/2027, y envíale la disculpa por WhatsApp registrando la interacción en el caso CASE-20944.\n6. **Seguimiento de cierre** (rep-huesp-recuperacion-servicio → rep-huesp-crm-huesped, rep-huesp-escucha-resenas → rep-huesp-resenas-encuestas): ¿En qué estado está el caso de recuperación CASE-20931 de la reseña REV-48213 de GST-310584 y cuál es la tasa de recuperación de servicio de MX-PMAYA entre el 01/11/2026 y el 17/11/2026?\n7. **Patrones de pisos en Playa de Palma** (rep-huesp-causa-raiz → rep-huesp-resenas-encuestas): Busca patrones recurrentes del departamento de pisos en el Iberostar Waves Cristina (ES-WCRIS) entre el 20/10/2026 y el 16/11/2026 con un umbral de 8 menciones y dime qué reseñas de Booking de nota inferior a 5/10 los ilustran.\n\n## Orchestration narrative\nEl broker sigue un bucle cerrado: escucha → causa raíz → acción de recuperación → seguimiento de cierre.\nPrimero el agente de escucha reúne en el agregador las reseñas negativas y los detractores de las\nencuestas y consulta el CRM para poner al frente a los huéspedes repetidores. Después el agente de causa\nraíz clasifica cada queja por departamento, busca patrones en el hotel y cruza la reseña con las\nincidencias de la estancia. Con ese diagnóstico, el agente de recuperación redacta la respuesta pública,\nconsulta el perfil del huésped, registra en el CRM una compensación dentro de política y contacta en\nprivado por el canal preferido. Por último, el seguimiento comprueba si la reseña se actualizó, el NPS\nposterior y la nueva reserva, y calcula la tasa de recuperación por hotel.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-rep-huesp-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "recuperacion-reputacion-broker-iberostar",
+        "brokerLabel": "Recuperación de reputación del huésped – Agent Network",
+        "brokerDescription": "Bucle cerrado de reputación para el equipo de guest relations de los resorts Iberostar. Escucha reseñas de TripAdvisor, Google y Booking y encuestas NPS y GRI, diagnostica la causa raíz por departamento y ejecuta la recuperación de servicio con respuesta pública y compensación en el CRM.",
+        "brokerUrlTemplate": "${ingressgw.url}/recuperacion-reputacion-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa rep-huesp-escucha-resenas-agent-iberostar con rep-huesp-resenas-encuestas-mcp-iberostar para detectar reseñas negativas en TripAdvisor, Google y Booking y para analizar NPS, GRI y detractores de las encuestas post-estancia.",
+          "Usa rep-huesp-escucha-resenas-agent-iberostar con rep-huesp-crm-huesped-mcp-iberostar para saber si el autor es un huésped repetidor y priorizar la cola de alertas.",
+          "Usa rep-huesp-causa-raiz-agent-iberostar con rep-huesp-resenas-encuestas-mcp-iberostar para clasificar quejas por departamento y detectar patrones recurrentes por hotel.",
+          "Usa rep-huesp-causa-raiz-agent-iberostar con rep-huesp-crm-huesped-mcp-iberostar para cruzar una reseña con el historial e incidencias de la estancia del huésped.",
+          "Usa rep-huesp-recuperacion-servicio-agent-iberostar con rep-huesp-resenas-encuestas-mcp-iberostar para redactar y publicar respuestas públicas a reseñas.",
+          "Usa rep-huesp-recuperacion-servicio-agent-iberostar con rep-huesp-crm-huesped-mcp-iberostar para proponer y registrar compensaciones, contactar en privado al huésped y hacer seguimiento del cierre del caso.",
+          "Sigue siempre el bucle cerrado escucha → causa raíz → recuperación → seguimiento; no propongas una compensación sin haber diagnosticado antes la causa raíz.",
+          "Antes de proponer una compensación, consulta el perfil del huésped en el CRM y no superes 500 USD sin aprobación del director del hotel."
+        ],
+        "skills": [
+          {
+            "id": "detectar-alertas-reputacion",
+            "name": "Detectar alertas de reputación",
+            "description": "Reúne las reseñas negativas y los detractores de las encuestas de un hotel y los prioriza poniendo primero a los huéspedes repetidores.",
+            "examples": [
+              "Dame las reseñas negativas de TripAdvisor y Google del Iberostar Selection Paraíso Maya de las últimas 48 horas y dime cuáles son de repetidores",
+              "¿Cómo ha evolucionado el NPS del Iberostar Selection Paraíso Maya en octubre de 2026 frente a septiembre?"
+            ],
+            "tags": [
+              "resenas",
+              "nps",
+              "alertas"
+            ]
+          },
+          {
+            "id": "diagnosticar-causa-raiz",
+            "name": "Diagnosticar la causa raíz",
+            "description": "Clasifica cada queja por departamento (A&B, pisos, recepción, mantenimiento, animación), detecta patrones y la cruza con las incidencias de la estancia.",
+            "examples": [
+              "¿A qué departamento corresponde la queja de la reseña REV-48213 y se registró alguna incidencia durante esa estancia?",
+              "Prepara el informe de causa raíz de la caída de NPS del Iberostar Selection Paraíso Maya en octubre de 2026"
+            ],
+            "tags": [
+              "causa-raiz",
+              "departamentos",
+              "patrones"
+            ]
+          },
+          {
+            "id": "recuperar-huesped",
+            "name": "Recuperar al huésped",
+            "description": "Redacta y publica la respuesta pública, propone y registra la compensación en el CRM y contacta en privado al huésped por su canal preferido.",
+            "examples": [
+              "Redacta la respuesta pública en TripAdvisor para la reseña REV-48213 y propón una compensación para la huésped GST-310584",
+              "Registra en el CRM un crédito de 150 USD para el huésped GST-322871 y envíale la disculpa por WhatsApp"
+            ],
+            "tags": [
+              "recuperacion",
+              "respuesta-publica",
+              "compensacion"
+            ]
+          },
+          {
+            "id": "seguimiento-recuperacion",
+            "name": "Seguimiento de la recuperación",
+            "description": "Comprueba el cierre de cada caso (reseña actualizada, NPS posterior, nueva reserva) y calcula la tasa de recuperación por hotel.",
+            "examples": [
+              "¿En qué estado está el caso de recuperación CASE-20931 de la reseña REV-48213?",
+              "Dame la tasa de recuperación de servicio del Iberostar Selection Paraíso Maya en noviembre de 2026"
+            ],
+            "tags": [
+              "seguimiento",
+              "cierre",
+              "kpi"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "rep-huesp-escucha-resenas-agent-iberostar",
+            "label": "Escucha de reseñas y encuestas",
+            "platform": "agentforce",
+            "protocol": "a2a"
+          },
+          {
+            "name": "rep-huesp-causa-raiz-agent-iberostar",
+            "label": "Diagnóstico de causa raíz",
+            "platform": "openai",
+            "protocol": "a2a"
+          },
+          {
+            "name": "rep-huesp-recuperacion-servicio-agent-iberostar",
+            "label": "Recuperación de servicio",
+            "platform": "claude platform",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "rep-huesp-resenas-encuestas-mcp-iberostar",
+            "label": "Reseñas y encuestas",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "rep-huesp-crm-huesped-mcp-iberostar",
+            "label": "CRM del huésped",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    },
+    {
+      "slug": "asistente-agencias-w2m",
+      "title": "Asistente B2B para agencias de W2M",
+      "shortDescription": "Asistente B2B para las agencias de viajes y turoperadores que venden el producto de W2M (World2Meet), la\ndivisión de viajes de Grupo Iberostar con 22 marcas de turoperación, distribución B2B y receptivo, y su\naerolínea World2Fly. Un único punto de contacto que cotiza en paralelo hotel Iberostar y vuelo World2Fly\n(p. ej. Madrid–Cancún o Madrid–Punta Cana), valida cupo, release y tarifa neta del contrato y gestiona\nreservas, modificaciones, grupos e incentivos.",
+      "persona": "Agente de viajes / turoperador que trabaja con W2M",
+      "businessPain": "Cotizar paquetes hotel + vuelo World2Fly respetando cupos, contratos y release obliga a consultar varios sistemas (brief §2).",
+      "orchestration": "Composición en paralelo: hotel y vuelo se cotizan a la vez y se combinan en un paquete con validación de contrato.",
+      "exampleQueries": [
+        {
+          "label": "Paquete Madrid–Cancún validado",
+          "query": "Cancún validado (w2m-agen-cupos-contratos → w2m-agen-contratacion-hotelera, w2m-agen-vuelos-world2fly → w2m-agen-plazas-world2fly, w2m-agen-cotizacion-paquetes → w2m-agen-reservas-agencia): Para la agencia AG-28105, cotiza Madrid–Cancún del 10 al 17/03/2026 para 2 adultos en el Iberostar Selection Cancún, doble superior vista mar, todo incluido, con el contrato CTR-W2M-2026-014 y los vuelos 2W 1201 / 2W 1202; comprueba cupo y release y aplica un margen del 12 %."
+        },
+        {
+          "label": "Familia a Punta Cana en Semana Santa",
+          "query": "Punta Cana del 04 al 11/04/2026 para 2 adultos y 1 niño de 7 años en junior suite familiar del Iberostar Selection Bávaro con el contrato CTR-W2M-2026-022 y el 2W 1301 / 2W 1302, aplicando el descuento de niño y la oferta de venta anticipada VA-8, y dime cuántas junior suites quedan de cupo."
+        },
+        {
+          "label": "Venta fuera de release",
+          "query": ": Hoy 17/11/2026 quiero vender 1 doble superior en el Iberostar Selection Cancún con entrada el 28/11/2026 y el contrato CTR-W2M-2026-014; dime si estoy dentro de release, si va contra cupo u on request y hasta cuándo se garantiza la tarifa neta."
+        },
+        {
+          "label": "Confirmar y añadir equipaje",
+          "query": ": Confirma la cotización COT-W2M-88412 a nombre de Laura Gómez Ruiz y Daniel Martín Sanz, envíame el localizador y el bono, y añade una maleta extra de 23 kg a cada pasajero en el 2W 1201 del 10/03/2026 y el 2W 1202 del 17/03/2026."
+        },
+        {
+          "label": "Cambio de fecha y cancelación",
+          "query": ": Recotiza el localizador W2M-583920 para regresar el 18/03/2026 en el 2W 1202 con una noche más en el Iberostar Selection Cancún (contrato CTR-W2M-2026-014) y, aparte, calcula los gastos de cancelación del localizador W2M-584117 y el reembolso a la agencia AG-28105."
+        },
+        {
+          "label": "Incentivo de 40 personas",
+          "query": "Punta Cana del 15 al 20/05/2026 en 20 dobles superiores TI del Iberostar Selection Bávaro (contrato CTR-W2M-2026-022, anexo de grupos) con cena de gala en la playa, bloquea 40 plazas en el 2W 1301 / 2W 1302, indica las gratuidades y el calendario de pagos 20/40/40, y formaliza el grupo GRP-W2M-2026-031."
+        }
+      ],
+      "description": "Asistente B2B para las agencias de viajes y turoperadores que venden el producto de W2M (World2Meet), la\ndivisión de viajes de Grupo Iberostar con 22 marcas de turoperación, distribución B2B y receptivo, y su\naerolínea World2Fly. Un único punto de contacto que cotiza en paralelo hotel Iberostar y vuelo World2Fly\n(p. ej. Madrid–Cancún o Madrid–Punta Cana), valida cupo, release y tarifa neta del contrato y gestiona\nreservas, modificaciones, grupos e incentivos.",
+      "purpose": "Hoy cotizar un paquete hotel + vuelo obliga al agente a consultar por separado el sistema de contratación\nhotelera, el inventario de plazas de World2Fly y la plataforma de reservas de agencia, y a comprobar a mano\nsi la venta está dentro de release o hay stop sales. W2M aporta más de la mitad de la facturación del grupo\n(2.731 M€ en 2025), así que cada cotización lenta o mal validada es margen perdido. Este caso de uso une\nlos tres sistemas detrás de un broker que compone hotel y vuelo en paralelo y valida el contrato antes de\nconfirmar.",
+      "readme": "# Asistente B2B para agencias de W2M — `asistente-agencias-w2m-broker-iberostar`\n\n## Description\nAsistente B2B para las agencias de viajes y turoperadores que venden el producto de W2M (World2Meet), la\ndivisión de viajes de Grupo Iberostar con 22 marcas de turoperación, distribución B2B y receptivo, y su\naerolínea World2Fly. Un único punto de contacto que cotiza en paralelo hotel Iberostar y vuelo World2Fly\n(p. ej. Madrid–Cancún o Madrid–Punta Cana), valida cupo, release y tarifa neta del contrato y gestiona\nreservas, modificaciones, grupos e incentivos.\n\n## Purpose\nHoy cotizar un paquete hotel + vuelo obliga al agente a consultar por separado el sistema de contratación\nhotelera, el inventario de plazas de World2Fly y la plataforma de reservas de agencia, y a comprobar a mano\nsi la venta está dentro de release o hay stop sales. W2M aporta más de la mitad de la facturación del grupo\n(2.731 M€ en 2025), así que cada cotización lenta o mal validada es margen perdido. Este caso de uso une\nlos tres sistemas detrás de un broker que compone hotel y vuelo en paralelo y valida el contrato antes de\nconfirmar.\n\n## Goals\n- Reducir el tiempo de cotización de un paquete hotel + vuelo de 20 minutos a menos de 1 minuto.\n- Evitar ventas contra cupo fuera de release o en fechas con stop sales.\n- Aplicar siempre la tarifa neta, ofertas y descuentos de niño vigentes del contrato CTR-W2M.\n- Aumentar la ocupación de los vuelos World2Fly combinándolos con hoteles Iberostar.\n- Acelerar la cotización y formalización de grupos e incentivos con gratuidades y calendario de pagos.\n\n## Audience / Users\n- **Primary persona:** Agente de viajes / turoperador que trabaja con W2M.\n- **Secondary users:** Equipos de contratación hotelera de W2M, revenue de World2Fly, departamento de grupos e incentivos y atención a agencias.\n\n## Architecture components\n\n### Broker (YAML-only)\n- `asistente-agencias-w2m-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `w2m-agen-cotizacion-paquetes-agent-iberostar` | Cotización de paquetes hotel + vuelo | cotizar-paquete, comparar-alternativas, aplicar-margen-agencia, confirmar-reserva-paquete, modificar-reserva-paquete |\n| `w2m-agen-cupos-contratos-agent-iberostar` | Cupos, release y condiciones de contrato | consultar-cupo, validar-release, tarifa-neta-condiciones |\n| `w2m-agen-vuelos-world2fly-agent-iberostar` | Plazas y tarifas de World2Fly | disponibilidad-vuelo, tarifa-vuelo-paquete, bloquear-plazas, servicios-auxiliares |\n| `w2m-agen-grupos-eventos-agent-iberostar` | Solicitudes de grupos e incentivos | cotizar-grupo, calendario-pagos-nominativos, formalizar-grupo |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `w2m-agen-contratacion-hotelera-mcp-iberostar` | Contratos, cupos y tarifas netas de hotel | get_contract, get_allotment, get_net_rates, check_release_status |\n| `w2m-agen-plazas-world2fly-mcp-iberostar` | Inventario de plazas y tarifas World2Fly | search_flights, get_package_fare, hold_seats, add_ancillary |\n| `w2m-agen-reservas-agencia-mcp-iberostar` | Reservas, bonos y modificaciones de agencia | create_quote, confirm_booking, get_booking, modify_or_cancel_booking, manage_group_booking |\n\n### Shared infrastructure\n- LLM provider: `open-ai-w2m-agen-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/asistente-agencias-w2m-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **Paquete Madrid–Cancún validado** (w2m-agen-cupos-contratos → w2m-agen-contratacion-hotelera, w2m-agen-vuelos-world2fly → w2m-agen-plazas-world2fly, w2m-agen-cotizacion-paquetes → w2m-agen-reservas-agencia): Para la agencia AG-28105, cotiza Madrid–Cancún del 10 al 17/03/2026 para 2 adultos en el Iberostar Selection Cancún, doble superior vista mar, todo incluido, con el contrato CTR-W2M-2026-014 y los vuelos 2W 1201 / 2W 1202; comprueba cupo y release y aplica un margen del 12 %.\n2. **Familia a Punta Cana en Semana Santa** (w2m-agen-cupos-contratos → w2m-agen-contratacion-hotelera, w2m-agen-vuelos-world2fly → w2m-agen-plazas-world2fly, w2m-agen-cotizacion-paquetes → w2m-agen-reservas-agencia): Cotiza Madrid–Punta Cana del 04 al 11/04/2026 para 2 adultos y 1 niño de 7 años en junior suite familiar del Iberostar Selection Bávaro con el contrato CTR-W2M-2026-022 y el 2W 1301 / 2W 1302, aplicando el descuento de niño y la oferta de venta anticipada VA-8, y dime cuántas junior suites quedan de cupo.\n3. **Venta fuera de release** (w2m-agen-cupos-contratos → w2m-agen-contratacion-hotelera): Hoy 17/11/2026 quiero vender 1 doble superior en el Iberostar Selection Cancún con entrada el 28/11/2026 y el contrato CTR-W2M-2026-014; dime si estoy dentro de release, si va contra cupo u on request y hasta cuándo se garantiza la tarifa neta.\n4. **Confirmar y añadir equipaje** (w2m-agen-cotizacion-paquetes → w2m-agen-reservas-agencia, w2m-agen-vuelos-world2fly → w2m-agen-plazas-world2fly): Confirma la cotización COT-W2M-88412 a nombre de Laura Gómez Ruiz y Daniel Martín Sanz, envíame el localizador y el bono, y añade una maleta extra de 23 kg a cada pasajero en el 2W 1201 del 10/03/2026 y el 2W 1202 del 17/03/2026.\n5. **Cambio de fecha y cancelación** (w2m-agen-cotizacion-paquetes → w2m-agen-reservas-agencia, w2m-agen-cupos-contratos → w2m-agen-contratacion-hotelera): Recotiza el localizador W2M-583920 para regresar el 18/03/2026 en el 2W 1202 con una noche más en el Iberostar Selection Cancún (contrato CTR-W2M-2026-014) y, aparte, calcula los gastos de cancelación del localizador W2M-584117 y el reembolso a la agencia AG-28105.\n6. **Incentivo de 40 personas** (w2m-agen-grupos-eventos → w2m-agen-reservas-agencia, w2m-agen-contratacion-hotelera, w2m-agen-plazas-world2fly): Cotiza para la agencia AG-28105 un incentivo de 40 personas Madrid–Punta Cana del 15 al 20/05/2026 en 20 dobles superiores TI del Iberostar Selection Bávaro (contrato CTR-W2M-2026-022, anexo de grupos) con cena de gala en la playa, bloquea 40 plazas en el 2W 1301 / 2W 1302, indica las gratuidades y el calendario de pagos 20/40/40, y formaliza el grupo GRP-W2M-2026-031.\n\n## Orchestration narrative\nEl broker clasifica cada petición de la agencia (cotización, contrato, vuelo, reserva o grupo). Para\ncotizar un paquete compone en paralelo: el agente de cupos y contratos consulta el sistema de contratación\nhotelera (cupo, release, tarifa neta, ofertas y stop sales) mientras el agente de World2Fly consulta el\ninventario de plazas y la tarifa IT del vuelo 2W. El agente de cotización combina ambos resultados en la\nplataforma de reservas de agencia, aplica margen o comisión y genera la cotización COT-W2M. Antes de\nconfirmar una reserva o un grupo, el broker valida siempre que la venta está dentro de release y con cupo;\nsi no, la marca como on request. Los grupos e incentivos se resuelven con el agente de grupos sobre los tres\nMCP. La respuesta final se entrega en español con importes netos y PVP en euros, contrato, vuelos y\nlocalizador W2M.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-w2m-agen-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "asistente-agencias-w2m-broker-iberostar",
+        "brokerLabel": "Asistente B2B para agencias de W2M – Agent Network",
+        "brokerDescription": "Asistente B2B para agencias de viajes y turoperadores que trabajan con W2M. Cotiza en paralelo hotel Iberostar y vuelo World2Fly, valida cupo, release y tarifa neta del contrato, y gestiona reservas, modificaciones, grupos e incentivos.",
+        "brokerUrlTemplate": "${ingressgw.url}/asistente-agencias-w2m-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa w2m-agen-cotizacion-paquetes-agent-iberostar con w2m-agen-reservas-agencia-mcp-iberostar para crear cotizaciones, comparar alternativas, aplicar margen o comisión, confirmar reservas y recotizar cambios o cancelaciones de localizadores W2M.",
+          "Usa w2m-agen-cupos-contratos-agent-iberostar con w2m-agen-contratacion-hotelera-mcp-iberostar para cupos, release, stop sales, tarifas netas, descuentos de niño y condiciones de cancelación de contratos CTR-W2M.",
+          "Usa w2m-agen-vuelos-world2fly-agent-iberostar con w2m-agen-plazas-world2fly-mcp-iberostar para disponibilidad de vuelos 2W, tarifas IT, bloqueos de plazas y servicios auxiliares.",
+          "Usa w2m-agen-grupos-eventos-agent-iberostar con w2m-agen-reservas-agencia-mcp-iberostar, w2m-agen-contratacion-hotelera-mcp-iberostar y w2m-agen-plazas-world2fly-mcp-iberostar para grupos, incentivos, gratuidades, calendario de pagos, nominativos y formalización de grupo.",
+          "Para cotizar un paquete, llama en paralelo a w2m-agen-cupos-contratos-agent-iberostar (hotel) y a w2m-agen-vuelos-world2fly-agent-iberostar (vuelo) y después combina ambos resultados con w2m-agen-cotizacion-paquetes-agent-iberostar en un único presupuesto.",
+          "Antes de confirmar cualquier reserva o grupo, valida siempre que la venta está dentro de release y hay cupo; si no, indica que va on request y no la confirmes contra cupo.",
+          "Devuelve siempre importes netos y PVP en euros, el código de contrato aplicado, el vuelo 2W y el localizador o cotización generados."
+        ],
+        "skills": [
+          {
+            "id": "cotizar-paquete-validado",
+            "name": "Cotizar paquete validado",
+            "description": "Cotiza un paquete hotel + vuelo World2Fly comprobando a la vez cupo, release y tarifa neta del contrato, y devuelve neto, PVP y condiciones.",
+            "examples": [
+              "Cotiza Madrid–Cancún del 10 al 17 de marzo de 2026 para 2 adultos en el Iberostar Selection Cancún con el 2W 1201 y el contrato CTR-W2M-2026-014, con margen del 12 %",
+              "¿Puedo vender contra cupo una junior suite en el Iberostar Selection Bávaro del 4 al 11 de abril de 2026 con el contrato CTR-W2M-2026-022 y el 2W 1301?"
+            ],
+            "tags": [
+              "cotizacion",
+              "cupo",
+              "world2fly"
+            ]
+          },
+          {
+            "id": "reservar-y-modificar",
+            "name": "Reservar y modificar paquetes",
+            "description": "Confirma cotizaciones con nombres, emite localizador W2M y bono, y recotiza cambios o cancelaciones según contrato y tarifa aérea.",
+            "examples": [
+              "Confirma la cotización COT-W2M-88412 a nombre de Laura Gómez Ruiz y Daniel Martín Sanz",
+              "¿Cuánto cuesta cancelar el localizador W2M-584117 y cuánto se reembolsa a la agencia?"
+            ],
+            "tags": [
+              "reserva",
+              "localizador",
+              "cancelacion"
+            ]
+          },
+          {
+            "id": "servicios-vuelo",
+            "name": "Plazas y servicios World2Fly",
+            "description": "Consulta plazas y tarifas IT de World2Fly, bloquea plazas para cotizaciones y añade equipaje, asientos o upgrades a localizadores.",
+            "examples": [
+              "Bloquea 2 plazas en el 2W 1201 del 10 de marzo de 2026 para la cotización COT-W2M-88412",
+              "Añade una maleta extra de 23 kg a cada pasajero del localizador W2M-583920"
+            ],
+            "tags": [
+              "vuelos",
+              "bloqueo",
+              "equipaje"
+            ]
+          },
+          {
+            "id": "grupos-incentivos",
+            "name": "Grupos e incentivos",
+            "description": "Cotiza y formaliza grupos e incentivos con gratuidades, bloqueo de plazas World2Fly, calendario de pagos y fecha de nominativos.",
+            "examples": [
+              "Cotiza un incentivo de 40 personas Madrid–Punta Cana del 15 al 20 de mayo de 2026 en el Iberostar Selection Bávaro con cena de gala",
+              "¿Cuándo vence el segundo pago del grupo GRP-W2M-2026-031?"
+            ],
+            "tags": [
+              "grupos",
+              "incentivos",
+              "pagos"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "w2m-agen-cotizacion-paquetes-agent-iberostar",
+            "label": "Cotización de paquetes",
+            "platform": "microsoft copilot",
+            "protocol": "a2a"
+          },
+          {
+            "name": "w2m-agen-cupos-contratos-agent-iberostar",
+            "label": "Cupos y contratos",
+            "platform": "vertex ai",
+            "protocol": "a2a"
+          },
+          {
+            "name": "w2m-agen-vuelos-world2fly-agent-iberostar",
+            "label": "Vuelos World2Fly",
+            "platform": "agentforce",
+            "protocol": "a2a"
+          },
+          {
+            "name": "w2m-agen-grupos-eventos-agent-iberostar",
+            "label": "Grupos e incentivos",
+            "platform": "openai",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "w2m-agen-contratacion-hotelera-mcp-iberostar",
+            "label": "Contratación hotelera",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "w2m-agen-plazas-world2fly-mcp-iberostar",
+            "label": "Plazas World2Fly",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "w2m-agen-reservas-agencia-mcp-iberostar",
+            "label": "Reservas de agencia",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    },
+    {
+      "slug": "planificador-the-club",
+      "title": "Planificador de estancias de The Club",
+      "shortDescription": "Planificador conversacional para los socios de The Club, el club vacacional de Iberostar. Un único punto\nde contacto en el que el socio pregunta cuántos puntos le quedan, en qué resort y temporada le rinden más,\nreserva su estancia entre la cartera de México, Caribe, Mediterráneo y Canarias, y resuelve sus cuotas de\nmantenimiento y facturas sin pasar por el call center.",
+      "persona": "Socio de The Club (club vacacional)",
+      "businessPain": "Los socios no ven con claridad su saldo de derechos ni la disponibilidad entre resorts, y las consultas de cuotas saturan el call center (brief §2).",
+      "orchestration": "Planificación conversacional: saldo → búsqueda de disponibilidad → propuesta de estancia y reserva.",
+      "exampleQueries": [
+        {
+          "label": "Saldo convertido en noches",
+          "query": ": Soy el socio TC-418273; dime mi saldo de puntos de 2026, cuándo caduca y cuántas noches puedo pasar en una suite de 1 dormitorio en el Iberostar Selection Cancún (MX-CUN) en temporada alta y en temporada media de 2027."
+        },
+        {
+          "label": "Planificación completa en el Caribe",
+          "query": ": Para el socio TC-418273, con su saldo de 2026, busca disponibilidad en el Caribe del 10 al 17 de abril de 2027 para 4 huéspedes (2 adultos y 2 niños) y propónme la opción que no supere mis puntos."
+        },
+        {
+          "label": "Reserva y control de cuotas",
+          "query": ": Comprueba que el socio TC-418273 no tiene cuotas vencidas de 2026 y reserva una suite 1 dormitorio en el Iberostar Grand Paraíso (MX-GPA) del 10 al 17 de abril de 2027 para 4 huéspedes, con cargo a sus puntos."
+        },
+        {
+          "label": "Temporadas en Canarias",
+          "query": ": Enséñame el calendario de temporadas 2027 y la tabla de puntos por noche del Iberostar Selection Anthelia (ES-TFS) y dime, con el saldo 2026 del socio TC-502918 (1.200 puntos), cuántas noches tiene en estudio en temporada baja."
+        },
+        {
+          "label": "Cuota en EUR fraccionada",
+          "query": ": Para el socio TC-502918, dame la cuota de mantenimiento de 2027 con su desglose en EUR, lista sus facturas de 2026 y crea un plan de fraccionamiento en 6 plazos para la factura FTC-2026-121933."
+        },
+        {
+          "label": "Cancelación y arrastre de puntos",
+          "query": ": Cancela la reserva TCR-2027-04512 del socio TC-418273, dime cuántos puntos se reintegran según la antelación y explícame cuántos puntos puedo arrastrar a 2027 según mi contrato TCC-2019-00871."
+        }
+      ],
+      "description": "Planificador conversacional para los socios de The Club, el club vacacional de Iberostar. Un único punto\nde contacto en el que el socio pregunta cuántos puntos le quedan, en qué resort y temporada le rinden más,\nreserva su estancia entre la cartera de México, Caribe, Mediterráneo y Canarias, y resuelve sus cuotas de\nmantenimiento y facturas sin pasar por el call center.",
+      "purpose": "Los socios no ven con claridad su saldo de derechos ni la disponibilidad entre resorts, y las consultas de\ncuotas saturan el call center. Este caso de uso une los contratos de socios, el inventario de unidades del\nclub y la facturación detrás de un broker que encadena saldo, disponibilidad y propuesta de estancia, y\nresponde las dudas de cuotas en la misma conversación.",
+      "readme": "# Planificador de estancias de The Club — `planificador-the-club-broker-iberostar`\n\n## Description\nPlanificador conversacional para los socios de The Club, el club vacacional de Iberostar. Un único punto\nde contacto en el que el socio pregunta cuántos puntos le quedan, en qué resort y temporada le rinden más,\nreserva su estancia entre la cartera de México, Caribe, Mediterráneo y Canarias, y resuelve sus cuotas de\nmantenimiento y facturas sin pasar por el call center.\n\n## Purpose\nLos socios no ven con claridad su saldo de derechos ni la disponibilidad entre resorts, y las consultas de\ncuotas saturan el call center. Este caso de uso une los contratos de socios, el inventario de unidades del\nclub y la facturación detrás de un broker que encadena saldo, disponibilidad y propuesta de estancia, y\nresponde las dudas de cuotas en la misma conversación.\n\n## Goals\n- Resolver en autoservicio el 70 % de las consultas de saldo, cuotas y facturas que hoy llegan al call center.\n- Mostrar al socio, en una sola respuesta, cuántas noches le dan sus puntos por resort, unidad y temporada.\n- Aumentar el uso de los puntos anuales y reducir los puntos que caducan sin usar.\n- Acelerar el cobro de la cuota de mantenimiento con enlaces de pago y planes de fraccionamiento.\n- Distribuir mejor la ocupación de las unidades del club entre temporadas alta, media y baja.\n\n## Audience / Users\n- **Primary persona:** Socio de The Club (club vacacional), titular de un contrato con puntos anuales.\n- **Secondary users:** Call center de The Club, equipo de servicio al socio, facturación y revenue del club.\n\n## Architecture components\n\n### Broker (YAML-only)\n- `planificador-the-club-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `club-plan-saldo-derechos-agent-iberostar` | Saldo de derechos y puntos del socio | consultar-saldo-puntos, explicar-contrato-derechos, calcular-noches-disponibles |\n| `club-plan-planificador-estancias-agent-iberostar` | Planificación y reserva de estancias | buscar-disponibilidad, proponer-estancia, reservar-estancia, modificar-cancelar-estancia, calendario-temporadas |\n| `club-plan-cuotas-facturacion-agent-iberostar` | Cuotas de mantenimiento y facturación | consultar-cuota-mantenimiento, consultar-facturas, pagar-fraccionar-cuota |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `club-plan-contratos-socios-mcp-iberostar` | Contratos, derechos, cuotas y facturas de socios | get_member_contract, get_points_balance, get_maintenance_fee, list_member_invoices, create_fee_payment |\n| `club-plan-disponibilidad-resorts-mcp-iberostar` | Disponibilidad de unidades del club por resort | search_club_availability, get_points_chart, book_club_stay |\n\n### Shared infrastructure\n- LLM provider: `open-ai-club-plan-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/planificador-the-club-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **Saldo convertido en noches** (club-plan-saldo-derechos → club-plan-contratos-socios, club-plan-disponibilidad-resorts): Soy el socio TC-418273; dime mi saldo de puntos de 2026, cuándo caduca y cuántas noches puedo pasar en una suite de 1 dormitorio en el Iberostar Selection Cancún (MX-CUN) en temporada alta y en temporada media de 2027.\n2. **Planificación completa en el Caribe** (club-plan-saldo-derechos → club-plan-contratos-socios, club-plan-planificador-estancias → club-plan-disponibilidad-resorts): Para el socio TC-418273, con su saldo de 2026, busca disponibilidad en el Caribe del 10 al 17 de abril de 2027 para 4 huéspedes (2 adultos y 2 niños) y propónme la opción que no supere mis puntos.\n3. **Reserva y control de cuotas** (club-plan-cuotas-facturacion → club-plan-contratos-socios, club-plan-planificador-estancias → club-plan-disponibilidad-resorts): Comprueba que el socio TC-418273 no tiene cuotas vencidas de 2026 y reserva una suite 1 dormitorio en el Iberostar Grand Paraíso (MX-GPA) del 10 al 17 de abril de 2027 para 4 huéspedes, con cargo a sus puntos.\n4. **Temporadas en Canarias** (club-plan-planificador-estancias → club-plan-disponibilidad-resorts, club-plan-saldo-derechos → club-plan-contratos-socios): Enséñame el calendario de temporadas 2027 y la tabla de puntos por noche del Iberostar Selection Anthelia (ES-TFS) y dime, con el saldo 2026 del socio TC-502918 (1.200 puntos), cuántas noches tiene en estudio en temporada baja.\n5. **Cuota en EUR fraccionada** (club-plan-cuotas-facturacion → club-plan-contratos-socios): Para el socio TC-502918, dame la cuota de mantenimiento de 2027 con su desglose en EUR, lista sus facturas de 2026 y crea un plan de fraccionamiento en 6 plazos para la factura FTC-2026-121933.\n6. **Cancelación y arrastre de puntos** (club-plan-planificador-estancias → club-plan-disponibilidad-resorts, club-plan-saldo-derechos → club-plan-contratos-socios): Cancela la reserva TCR-2027-04512 del socio TC-418273, dime cuántos puntos se reintegran según la antelación y explícame cuántos puntos puedo arrastrar a 2027 según mi contrato TCC-2019-00871.\n\n## Orchestration narrative\nEl broker clasifica cada mensaje del socio por intención (saldo, planificación, reserva o cuotas) y, si se\nmezclan varias, la divide y llama a los agentes en paralelo. Para planificar sigue siempre la misma cadena:\nel agente de saldo lee el contrato y los puntos en el MCP de contratos de socios, el planificador busca\nunidades libres y la tabla de puntos por temporada en el MCP de disponibilidad de resorts, y propone solo\nopciones que caben en el saldo. Antes de confirmar una reserva, el agente de cuotas comprueba que no hay\ncuotas vencidas. Las respuestas se reúnen en un único mensaje en español con el número de socio, los\npuntos descontados o reintegrados, los localizadores y los importes en USD o EUR.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-club-plan-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "planificador-the-club-broker-iberostar",
+        "brokerLabel": "Planificador de estancias de The Club – Agent Network",
+        "brokerDescription": "Planificador conversacional para los socios de The Club, el club vacacional de Iberostar. Consulta el saldo de puntos y derechos, busca disponibilidad entre los resorts de México, Caribe, Mediterráneo y Canarias, reserva la estancia y resuelve cuotas de mantenimiento y facturas.",
+        "brokerUrlTemplate": "${ingressgw.url}/planificador-the-club-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa club-plan-saldo-derechos-agent-iberostar con club-plan-contratos-socios-mcp-iberostar para saldos de puntos, caducidad, arrastre y explicación del contrato del socio.",
+          "Usa club-plan-saldo-derechos-agent-iberostar con club-plan-disponibilidad-resorts-mcp-iberostar para convertir el saldo en noches según resort, unidad y temporada.",
+          "Usa club-plan-planificador-estancias-agent-iberostar con club-plan-disponibilidad-resorts-mcp-iberostar para buscar disponibilidad, calendarios de temporadas, propuestas y reservas, cambios o cancelaciones de estancias.",
+          "Usa club-plan-cuotas-facturacion-agent-iberostar con club-plan-contratos-socios-mcp-iberostar para cuotas de mantenimiento, facturas, pagos y fraccionamientos.",
+          "Para planificar una estancia sigue siempre la cadena saldo, disponibilidad y propuesta; no propongas opciones que superen el saldo sin avisar al socio.",
+          "Antes de confirmar una reserva, comprueba con club-plan-cuotas-facturacion-agent-iberostar que el socio no tiene cuotas vencidas e impagadas.",
+          "Cuando una petición mezcle varias intenciones, divídela y llama a los agentes necesarios en paralelo; después devuelve una única respuesta al socio con su número TC y los localizadores."
+        ],
+        "skills": [
+          {
+            "id": "entender-mi-saldo",
+            "name": "Entender mi saldo de puntos",
+            "description": "Explica al socio cuántos puntos y derechos le quedan, cuándo caducan, qué permite su contrato y cuántas noches representan según resort, unidad y temporada.",
+            "examples": [
+              "Soy el socio TC-418273, ¿cuántos puntos me quedan en 2026 y cuántas noches son en una suite de 1 dormitorio en Cancún en temporada alta?",
+              "¿Puedo pasar a 2027 los puntos que no use este año? Socio TC-502918"
+            ],
+            "tags": [
+              "saldo",
+              "puntos",
+              "contrato"
+            ]
+          },
+          {
+            "id": "planificar-estancia",
+            "name": "Planificar una estancia",
+            "description": "Combina el saldo del socio con la disponibilidad de unidades entre resorts y propone estancias que encajan en sus puntos, fechas y temporada.",
+            "examples": [
+              "Tengo 2.400 puntos, propónme una semana en México en temporada media para 4 personas, socio TC-418273",
+              "Busca disponibilidad del 10 al 17 de abril de 2027 en el Caribe para 2 adultos y 2 niños, socio TC-418273"
+            ],
+            "tags": [
+              "planificacion",
+              "disponibilidad",
+              "temporadas"
+            ]
+          },
+          {
+            "id": "gestionar-reserva",
+            "name": "Reservar, cambiar o cancelar",
+            "description": "Confirma, modifica o cancela una reserva de unidad del club con cargo a los puntos y devuelve localizador, puntos descontados o reintegrados y saldo restante.",
+            "examples": [
+              "Reserva la suite 1 dormitorio en el Iberostar Grand Paraíso del 10 al 17 de abril de 2027 para el socio TC-418273",
+              "Cancela la reserva TCR-2027-04512 y dime cuántos puntos me devuelven"
+            ],
+            "tags": [
+              "reserva",
+              "cambios",
+              "cancelacion"
+            ]
+          },
+          {
+            "id": "cuotas-y-facturas",
+            "name": "Cuotas y facturas",
+            "description": "Informa de la cuota de mantenimiento anual en USD o EUR, reenvía facturas y genera el pago único o el fraccionamiento de la cuota.",
+            "examples": [
+              "¿Cuánto es mi cuota de mantenimiento de 2027 y puedo pagarla ya con tarjeta? Socio TC-418273",
+              "¿Puedo fraccionar la cuota de mantenimiento en 6 plazos? Soy TC-502918"
+            ],
+            "tags": [
+              "cuotas",
+              "facturas",
+              "pago"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "club-plan-saldo-derechos-agent-iberostar",
+            "label": "Saldo de derechos",
+            "platform": "claude platform",
+            "protocol": "a2a"
+          },
+          {
+            "name": "club-plan-planificador-estancias-agent-iberostar",
+            "label": "Planificador de estancias",
+            "platform": "microsoft copilot",
+            "protocol": "a2a"
+          },
+          {
+            "name": "club-plan-cuotas-facturacion-agent-iberostar",
+            "label": "Cuotas y facturación",
+            "platform": "vertex ai",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "club-plan-contratos-socios-mcp-iberostar",
+            "label": "Contratos de socios",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "club-plan-disponibilidad-resorts-mcp-iberostar",
+            "label": "Disponibilidad de resorts",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    },
+    {
+      "slug": "due-diligence-aperturas",
+      "title": "Due diligence de nuevas aperturas",
+      "shortDescription": "Analista agéntico para el director o directora de expansión y el comité de inversiones de Grupo\nIberostar. Para cada proyecto del plan de inversión de 1.000 M€ hasta 2028 (por ejemplo, EXP-2027-011 en\nKendwa, Zanzíbar, o EXP-2027-018 en Bečići, Montenegro) lanza en paralelo el análisis de mercado y\ndestino, la evaluación técnica del activo y su CAPEX de reforma, el modelo financiero y el screening de\nsanciones y ESG, y consolida los resultados en un memorando de inversión listo para el comité.",
+      "persona": "Director/a de expansión y comité de inversiones",
+      "businessPain": "Evaluar nuevos activos (Zanzíbar, Montenegro) dentro del plan de 1.000 M€ hasta 2028 con riesgo de sanciones y ESG tras la salida de Cuba (brief §1, §5, §8).",
+      "orchestration": "Fan-out multianalista: mercado, activo, finanzas y sanciones/ESG en paralelo, consolidados en un memorando de inversión.",
+      "exampleQueries": [
+        {
+          "label": "Tesis de mercado de Zanzíbar",
+          "query": ": Para el proyecto EXP-2027-011 (resort de Kendwa, 236 habitaciones, todo incluido), dame las llegadas del destino TZ-ZNZ de 2023 a 2030, la conectividad aérea del aeropuerto ZNZ en la temporada W27, el set competitivo de categoría 5 y los comparables de la cartera en la región africa_oriental, incluida la curva de ramp-up del hotel IBS-TZ-ZNZ-01."
+        },
+        {
+          "label": "Activo técnico y CAPEX en Montenegro",
+          "query": ": Para EXP-2027-018 (hotel de Bečići, 198 habitaciones), resume la auditoría MEP DR-018-TEC-002 con los hallazgos de criticidad mayor, lista los documentos pendientes de la carpeta legal y estima el CAPEX de reforma a Iberostar Selection comparándolo con el benchmark de reposicionamiento_completo de la cartera."
+        },
+        {
+          "label": "TIR, payback y sensibilidad",
+          "query": ": Calcula la TIR del proyecto y del equity, el VAN al 10 % y el payback de EXP-2027-011 con un precio de 62 M USD, un CAPEX de 18 M USD, un 55 % de LTV al 7,2 % y los estados financieros del vendedor desde 2023; después haz la sensibilidad a ±10 % de ADR y ±5 puntos de ocupación y dime si supera la TIR mínima del 14 %."
+        },
+        {
+          "label": "Screening de sanciones y beneficiario final",
+          "query": ": Para EXP-2027-018, haz el screening de sanciones de Adriatic Bay Resorts d.o.o. y de Volga Adriatic Invest Ltd (Chipre), reconstruye la cadena de propiedad del registro ME-5-0912877 con umbral de UBO del 25 % y comprueba si Marko Vuković (ME, 1971) es PEP o tiene vínculos con GAESA o con la Cuba Restricted List."
+        },
+        {
+          "label": "Riesgo climático costero y Wave of Change",
+          "query": ": Evalúa el riesgo climático del activo de EXP-2027-011 en el escenario SSP5-8.5 con horizonte 2050 (nivel del mar, erosión de playa y estrés hídrico) y propón cómo alinearlo con los objetivos de Wave of Change de −35 % de energía en 2030 y un vivero de coral en el arrecife de Kendwa."
+        },
+        {
+          "label": "Memorando para el comité",
+          "query": ": Lanza la due diligence completa de EXP-2027-011 y redacta el memorando de inversión para el comité del 15/12/2026, con la matriz de riesgos, las condiciones precedentes abiertas del checklist de cierre y la recomendación de voto."
+        }
+      ],
+      "description": "Analista agéntico para el director o directora de expansión y el comité de inversiones de Grupo\nIberostar. Para cada proyecto del plan de inversión de 1.000 M€ hasta 2028 (por ejemplo, EXP-2027-011 en\nKendwa, Zanzíbar, o EXP-2027-018 en Bečići, Montenegro) lanza en paralelo el análisis de mercado y\ndestino, la evaluación técnica del activo y su CAPEX de reforma, el modelo financiero y el screening de\nsanciones y ESG, y consolida los resultados en un memorando de inversión listo para el comité.",
+      "purpose": "Tras abrir en Montenegro (junio de 2026) y en Zanzíbar (noviembre de 2026, primer hotel en África\noriental), y tras salir de Cuba en 2026 por las sanciones de EE. UU. (OFAC y Ley Helms-Burton), el equipo\nde expansión evalúa más activos en mercados nuevos con más riesgo regulatorio. Hoy el análisis de\nmercado, el informe técnico, el modelo financiero y el KYC viven en hojas de cálculo, consultoras y data\nrooms distintos. Este caso de uso los coordina detrás de un broker que ejecuta las cuatro líneas en\nparalelo, aplica el screening de sanciones y de beneficiario final como requisito previo y entrega un\nmemorando trazable con fuentes del data room.",
+      "readme": "# Due diligence de nuevas aperturas — `due-diligence-aperturas-broker-iberostar`\n\n## Description\nAnalista agéntico para el director o directora de expansión y el comité de inversiones de Grupo\nIberostar. Para cada proyecto del plan de inversión de 1.000 M€ hasta 2028 (por ejemplo, EXP-2027-011 en\nKendwa, Zanzíbar, o EXP-2027-018 en Bečići, Montenegro) lanza en paralelo el análisis de mercado y\ndestino, la evaluación técnica del activo y su CAPEX de reforma, el modelo financiero y el screening de\nsanciones y ESG, y consolida los resultados en un memorando de inversión listo para el comité.\n\n## Purpose\nTras abrir en Montenegro (junio de 2026) y en Zanzíbar (noviembre de 2026, primer hotel en África\noriental), y tras salir de Cuba en 2026 por las sanciones de EE. UU. (OFAC y Ley Helms-Burton), el equipo\nde expansión evalúa más activos en mercados nuevos con más riesgo regulatorio. Hoy el análisis de\nmercado, el informe técnico, el modelo financiero y el KYC viven en hojas de cálculo, consultoras y data\nrooms distintos. Este caso de uso los coordina detrás de un broker que ejecuta las cuatro líneas en\nparalelo, aplica el screening de sanciones y de beneficiario final como requisito previo y entrega un\nmemorando trazable con fuentes del data room.\n\n## Goals\n- Reducir de 6-8 semanas a 10 días el plazo entre la entrada del data room y el memorando para el comité.\n- Garantizar que ningún proyecto llegue a comité sin un screening de sanciones (OFAC, UE, ONU, HM Treasury, Cuba Restricted List) y de beneficiario final de los últimos 90 días.\n- Comparar cada activo con KPI reales de hoteles Iberostar comparables (ocupación, ADR, RevPAR, GOP) en lugar de supuestos de consultora.\n- Cuantificar el CAPEX de reforma y su sobrecoste probable a partir de las reformas ejecutadas en la cartera.\n- Incorporar el riesgo climático costero y la alineación con Wave of Change a la decisión de inversión.\n\n## Audience / Users\n- **Primary persona:** Director/a de expansión y comité de inversiones de Grupo Iberostar.\n- **Secondary users:** Analistas de expansión, Compliance, Dirección Técnica, oficina de la CSO (Wave of Change), Legal y Dirección Financiera.\n\n## Architecture components\n\n### Broker (YAML-only)\n- `due-diligence-aperturas-broker-iberostar`: orquestador; existe solo en `agent-network.yaml`.\n\n### A2A agents\n| Agent | Role | Skills |\n|---|---|---|\n| `exp-dd-analisis-mercado-agent-iberostar` | Análisis de mercado y destino | tesis-destino, conectividad-aerea, oferta-competidora, comparables-cartera |\n| `exp-dd-activo-tecnico-agent-iberostar` | Evaluación técnica del activo y CAPEX de reforma | inspeccion-tecnica, capex-reforma, cumplimiento-normativo |\n| `exp-dd-modelo-financiero-agent-iberostar` | Modelo financiero y escenarios | proyeccion-operativa, cuenta-explotacion, rentabilidad-inversion, escenarios-sensibilidad, encaje-plan-inversion |\n| `exp-dd-sanciones-esg-agent-iberostar` | Screening de sanciones y riesgo ESG | screening-sanciones, beneficiario-final, riesgo-climatico-costero, alineacion-wave-of-change |\n| `exp-dd-memorando-inversion-agent-iberostar` | Memorando para el comité de inversiones | redactar-memorando, matriz-riesgos, condiciones-precedentes |\n\n### MCP servers\n| MCP server | Role | Tools |\n|---|---|---|\n| `exp-dd-benchmark-cartera-mcp-iberostar` | KPI de hoteles comparables de la cartera | find_comparable_hotels, get_hotel_kpis, get_ramp_up_curve, get_renovation_capex_benchmarks |\n| `exp-dd-datos-destino-mcp-iberostar` | Llegadas, conectividad aérea y oferta del destino | get_tourist_arrivals, get_air_connectivity, get_competitive_supply |\n| `exp-dd-screening-sanciones-mcp-iberostar` | Listas de sanciones y beneficiario final | screen_counterparty, get_ownership_chain, check_pep_adverse_media |\n| `exp-dd-repositorio-documental-mcp-iberostar` | Data room de due diligence | list_data_room_documents, get_technical_report, get_financial_statements, get_climate_risk_assessment, get_closing_checklist |\n\n### Shared infrastructure\n- LLM provider: `open-ai-exp-dd-iberostar` (`gpt-5-mini`).\n- Ingress: `${ingressgw.url}/due-diligence-aperturas-broker-iberostar`.\n\n## Example queries\nCada consulta incluye todos los parámetros que necesitan los agentes y los MCP.\n\n1. **Tesis de mercado de Zanzíbar** (exp-dd-analisis-mercado → exp-dd-datos-destino, exp-dd-benchmark-cartera): Para el proyecto EXP-2027-011 (resort de Kendwa, 236 habitaciones, todo incluido), dame las llegadas del destino TZ-ZNZ de 2023 a 2030, la conectividad aérea del aeropuerto ZNZ en la temporada W27, el set competitivo de categoría 5 y los comparables de la cartera en la región africa_oriental, incluida la curva de ramp-up del hotel IBS-TZ-ZNZ-01.\n2. **Activo técnico y CAPEX en Montenegro** (exp-dd-activo-tecnico → exp-dd-repositorio-documental, exp-dd-benchmark-cartera): Para EXP-2027-018 (hotel de Bečići, 198 habitaciones), resume la auditoría MEP DR-018-TEC-002 con los hallazgos de criticidad mayor, lista los documentos pendientes de la carpeta legal y estima el CAPEX de reforma a Iberostar Selection comparándolo con el benchmark de reposicionamiento_completo de la cartera.\n3. **TIR, payback y sensibilidad** (exp-dd-modelo-financiero → exp-dd-benchmark-cartera, exp-dd-repositorio-documental): Calcula la TIR del proyecto y del equity, el VAN al 10 % y el payback de EXP-2027-011 con un precio de 62 M USD, un CAPEX de 18 M USD, un 55 % de LTV al 7,2 % y los estados financieros del vendedor desde 2023; después haz la sensibilidad a ±10 % de ADR y ±5 puntos de ocupación y dime si supera la TIR mínima del 14 %.\n4. **Screening de sanciones y beneficiario final** (exp-dd-sanciones-esg → exp-dd-screening-sanciones): Para EXP-2027-018, haz el screening de sanciones de Adriatic Bay Resorts d.o.o. y de Volga Adriatic Invest Ltd (Chipre), reconstruye la cadena de propiedad del registro ME-5-0912877 con umbral de UBO del 25 % y comprueba si Marko Vuković (ME, 1971) es PEP o tiene vínculos con GAESA o con la Cuba Restricted List.\n5. **Riesgo climático costero y Wave of Change** (exp-dd-sanciones-esg → exp-dd-repositorio-documental): Evalúa el riesgo climático del activo de EXP-2027-011 en el escenario SSP5-8.5 con horizonte 2050 (nivel del mar, erosión de playa y estrés hídrico) y propón cómo alinearlo con los objetivos de Wave of Change de −35 % de energía en 2030 y un vivero de coral en el arrecife de Kendwa.\n6. **Memorando para el comité** (exp-dd-memorando-inversion → exp-dd-repositorio-documental, con fan-out previo a mercado, activo, modelo financiero y sanciones/ESG): Lanza la due diligence completa de EXP-2027-011 y redacta el memorando de inversión para el comité del 15/12/2026, con la matriz de riesgos, las condiciones precedentes abiertas del checklist de cierre y la recomendación de voto.\n\n## Orchestration narrative\nEl broker recibe un código de proyecto EXP-2027-xxx y, para una due diligence completa, hace un fan-out\nen paralelo a cuatro analistas: mercado y destino (datos de destino y benchmark de cartera), activo\ntécnico (data room y benchmark de CAPEX), modelo financiero (benchmark de cartera y estados financieros\ndel data room) y sanciones/ESG (screening de sanciones para OFAC, UE, ONU, Helms-Burton, beneficiario\nfinal y PEP, y data room para el riesgo climático costero). Cuando las cuatro líneas terminan, el agente\nde memorando consolida sus conclusiones con el checklist de cierre del data room en un memorando con\nmatriz de riesgos, condiciones precedentes y recomendación de voto. El broker no recomienda aprobar\nningún proyecto sin un screening de sanciones y de beneficiario final de los últimos 90 días, y escala a\nCompliance cualquier coincidencia confirmada.\n\n## Files\n- `agent-network.yaml`: broker, agents, MCPs, LLM, connections.\n- `exchange.json`: Anypoint Exchange descriptor + variables for all endpoint URLs and `openai-exp-dd-iberostar.apiKey`.\n",
+      "network": {
+        "brokerName": "due-diligence-aperturas-broker-iberostar",
+        "brokerLabel": "Due diligence de nuevas aperturas – Agent Network",
+        "brokerDescription": "Analista de expansión para el comité de inversiones de Grupo Iberostar. Lanza en paralelo el análisis de mercado, la evaluación técnica del activo, el modelo financiero y el screening de sanciones y ESG de cada proyecto, y los consolida en un memorando de inversión.",
+        "brokerUrlTemplate": "${ingressgw.url}/due-diligence-aperturas-broker-iberostar",
+        "provider": {
+          "organization": "Grupo Iberostar",
+          "url": "https://www.iberostar.com/es"
+        },
+        "model": "gpt-5-mini",
+        "instructions": [
+          "Usa exp-dd-analisis-mercado-agent-iberostar con exp-dd-datos-destino-mcp-iberostar y exp-dd-benchmark-cartera-mcp-iberostar para llegadas, conectividad aérea, oferta competidora y hoteles comparables de la cartera.",
+          "Usa exp-dd-activo-tecnico-agent-iberostar con exp-dd-repositorio-documental-mcp-iberostar y exp-dd-benchmark-cartera-mcp-iberostar para la inspección técnica, el cumplimiento normativo y el CAPEX de reforma.",
+          "Usa exp-dd-modelo-financiero-agent-iberostar con exp-dd-benchmark-cartera-mcp-iberostar y exp-dd-repositorio-documental-mcp-iberostar para ADR, ocupación, RevPAR, GOP, TIR, VAN, payback, escenarios y encaje en el plan de 1.000 M€.",
+          "Usa exp-dd-sanciones-esg-agent-iberostar con exp-dd-screening-sanciones-mcp-iberostar para sanciones OFAC, UE, ONU y Helms-Burton, beneficiario final y PEP.",
+          "Usa exp-dd-sanciones-esg-agent-iberostar con exp-dd-repositorio-documental-mcp-iberostar para riesgo climático costero y alineación con Wave of Change.",
+          "Usa exp-dd-memorando-inversion-agent-iberostar con exp-dd-repositorio-documental-mcp-iberostar para el memorando, la matriz de riesgos y las condiciones precedentes del SPA.",
+          "Ante una due diligence completa, llama en paralelo a los agentes de mercado, activo, modelo financiero y sanciones/ESG, y después pasa sus conclusiones al agente de memorando.",
+          "Nunca recomiendes aprobar un proyecto sin un screening de sanciones y de beneficiario final con fecha de los últimos 90 días; cualquier coincidencia confirmada se escala a Compliance."
+        ],
+        "skills": [
+          {
+            "id": "due-diligence-completa",
+            "name": "Due diligence completa",
+            "description": "Ejecuta en paralelo las cuatro líneas de análisis de un proyecto de expansión y devuelve un resumen consolidado con semáforo por línea.",
+            "examples": [
+              "Lanza la due diligence completa del proyecto EXP-2027-011 (resort de Kendwa, Zanzíbar, 236 habitaciones, precio pedido 62 M USD)",
+              "¿En qué estado está la due diligence de EXP-2027-018 en Bečići?"
+            ],
+            "tags": [
+              "due-diligence",
+              "expansion",
+              "fan-out"
+            ]
+          },
+          {
+            "id": "tesis-y-rentabilidad",
+            "name": "Tesis de mercado y rentabilidad",
+            "description": "Combina la tesis de destino y los comparables de la cartera con el modelo financiero para responder si un activo alcanza la TIR mínima.",
+            "examples": [
+              "Con los comparables de la cartera, ¿alcanza EXP-2027-011 la TIR mínima del 14 % del equity?",
+              "Compara el RevPAR estabilizado de EXP-2027-018 con el Iberostar Waves Bellevue"
+            ],
+            "tags": [
+              "tir",
+              "mercado",
+              "comparables"
+            ]
+          },
+          {
+            "id": "riesgo-sanciones-esg",
+            "name": "Riesgo de sanciones y ESG",
+            "description": "Verifica sanciones, beneficiario final y riesgo climático costero de un proyecto antes de que pase a comité.",
+            "examples": [
+              "Antes del comité, verifica sanciones y beneficiario final del vendedor de EXP-2027-018",
+              "¿Qué riesgo climático costero y de Helms-Burton tiene EXP-2027-011?"
+            ],
+            "tags": [
+              "sanciones",
+              "ofac",
+              "esg"
+            ]
+          },
+          {
+            "id": "memorando-comite",
+            "name": "Memorando para el comité",
+            "description": "Prepara el memorando de inversión con matriz de riesgos, condiciones precedentes y recomendación de voto.",
+            "examples": [
+              "Prepara el memorando de EXP-2027-011 para el comité de inversiones del 15/12/2026",
+              "Dame la recomendación de voto y las condiciones precedentes de EXP-2027-018"
+            ],
+            "tags": [
+              "memorando",
+              "comite",
+              "cierre"
+            ]
+          }
+        ],
+        "agents": [
+          {
+            "name": "exp-dd-analisis-mercado-agent-iberostar",
+            "label": "Análisis de mercado y destino",
+            "platform": "agentforce",
+            "protocol": "a2a"
+          },
+          {
+            "name": "exp-dd-activo-tecnico-agent-iberostar",
+            "label": "Activo técnico y CAPEX",
+            "platform": "openai",
+            "protocol": "a2a"
+          },
+          {
+            "name": "exp-dd-modelo-financiero-agent-iberostar",
+            "label": "Modelo financiero",
+            "platform": "claude platform",
+            "protocol": "a2a"
+          },
+          {
+            "name": "exp-dd-sanciones-esg-agent-iberostar",
+            "label": "Sanciones y ESG",
+            "platform": "microsoft copilot",
+            "protocol": "a2a"
+          },
+          {
+            "name": "exp-dd-memorando-inversion-agent-iberostar",
+            "label": "Memorando de inversión",
+            "platform": "vertex ai",
+            "protocol": "a2a"
+          }
+        ],
+        "mcpServers": [
+          {
+            "name": "exp-dd-benchmark-cartera-mcp-iberostar",
+            "label": "Benchmark de cartera",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "exp-dd-datos-destino-mcp-iberostar",
+            "label": "Datos de destino",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "exp-dd-screening-sanciones-mcp-iberostar",
+            "label": "Screening de sanciones",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          },
+          {
+            "name": "exp-dd-repositorio-documental-mcp-iberostar",
+            "label": "Data room de due diligence",
+            "transport": "streamableHttp",
+            "apis": [],
+            "apiCount": 0
+          }
+        ]
+      },
+      "tags": [
+        "hospitality"
+      ]
+    }
+  ]
+}
