@@ -19,9 +19,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# env files
+# env files (.env.local is committed on purpose, at the owner's request)
 .env
 .env*.local
+!.env.local
 
 # runtime data (likes/views, no DB)
 /.data
