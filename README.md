@@ -126,6 +126,37 @@ The rebrand step in `../instruction-prompt.md` replaces, in order:
   volume + set `STATS_DIR`, or set `BROKER_CONFIG_JSON` (recommended for
   Railway) to a JSON map of `slug → url`.
 
+## Deploy to Heroku
+
+The repo is Heroku-ready: `Procfile` (`web: npm run start`, binds to `$PORT`),
+Node pinned to `22.x` in `package.json` `engines`, and `lib/use-cases.json`
+committed, so the build does not need the sibling use-case folders.
+
+```bash
+heroku create <app-name>
+heroku git:remote -a <app-name>
+# .env.local is NOT read on Heroku — push its values as config vars:
+grep -vE '^\s*(#|$)' .env.local | xargs -d '\n' heroku config:set
+heroku config:set STATS_DIR=/tmp/portal-data
+git push heroku main
+heroku open
+```
+
+On macOS (BSD `xargs` has no `-d`), set them with
+`heroku config:set $(grep -vE '^\s*(#|$)' .env.local | tr '\n' ' ')` or one by one.
+
+Notes:
+
+- **`NEXT_PUBLIC_*` vars are baked in at build time.** Set them as config vars
+  *before* `git push heroku main`; changing one later needs a rebuild
+  (`git commit --allow-empty -m rebuild && git push heroku main`).
+- **The dyno filesystem is ephemeral** (wiped on every restart/deploy, at least
+  daily). Likes, views, sign-in activity and UI-set broker URLs reset. Set
+  `BROKER_CONFIG_JSON` (JSON map `slug → broker URL`) so chat brokers survive
+  restarts.
+- **Run a single web dyno**: stats live on local disk, so several dynos would
+  each keep their own counters.
+
 ## Deploy to Railway
 
 1. Push this folder to a Git repo and create a new Railway project from it.
