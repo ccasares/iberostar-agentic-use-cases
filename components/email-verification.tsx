@@ -22,21 +22,16 @@ import {
 
 interface EmailVerificationProps {
   onVerified: (email: string) => void;
+  // ALLOWED_EMAIL_DOMAINS as read on the server.
+  allowedDomains: string[];
 }
 
-// Keep in sync with ALLOWED_EMAIL_DOMAINS on the server.
-const ALLOWED_DOMAINS = ["salesforce.com", "iberostar.com", "grupoiberostar.com"];
+export function EmailVerification({ onVerified, allowedDomains }: EmailVerificationProps) {
+  const isAllowed = (email: string) =>
+    allowedDomains.includes(email.trim().toLowerCase().split("@")[1]);
+  const allowedDomainsMessage = () =>
+    allowedDomains.map((d) => `@${d}`).join(" o ");
 
-function isAllowed(email: string) {
-  const domain = email.trim().toLowerCase().split("@")[1];
-  return ALLOWED_DOMAINS.includes(domain);
-}
-
-function allowedDomainsMessage(): string {
-  return ALLOWED_DOMAINS.map((d) => `@${d}`).join(" o ");
-}
-
-export function EmailVerification({ onVerified }: EmailVerificationProps) {
   const [step, setStep] = useState<"email" | "code" | "verified">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -106,7 +101,10 @@ export function EmailVerification({ onVerified }: EmailVerificationProps) {
           </div>
           <CardTitle className="text-xl">Portal de demostración: casos de uso de IA agéntica</CardTitle>
           <CardDescription>
-            Acceso restringido: solo para empleados autorizados.
+            Acceso restringido: solo para empleados autorizados
+            {allowedDomains.length
+              ? `: ${allowedDomains.map((d) => `@${d}`).join(", ")}`
+              : "."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -126,7 +124,7 @@ export function EmailVerification({ onVerified }: EmailVerificationProps) {
                   <Input
                     id="email"
                     type="email"
-                    placeholder={`tu.nombre@${ALLOWED_DOMAINS[0]}`}
+                    placeholder={`tu.nombre@${allowedDomains[0] || "empresa.com"}`}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"

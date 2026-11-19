@@ -38,7 +38,13 @@ const STORAGE_AT = "portal_verified_at";
 const LOGIN_LOGGED_KEY = "portal_login_logged";
 const MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-export function PortalGate({ children }: { children: React.ReactNode }) {
+export function PortalGate({
+  children,
+  allowedDomains,
+}: {
+  children: React.ReactNode;
+  allowedDomains: string[];
+}) {
   const [ready, setReady] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState("");
 
@@ -98,7 +104,7 @@ export function PortalGate({ children }: { children: React.ReactNode }) {
   }
 
   if (!verifiedEmail) {
-    return <EmailVerification onVerified={handleVerified} />;
+    return <EmailVerification onVerified={handleVerified} allowedDomains={allowedDomains} />;
   }
 
   return (
