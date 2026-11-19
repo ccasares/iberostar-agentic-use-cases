@@ -148,7 +148,9 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) {
+      // Long broker calls are streamed with a 200 status, so failures arrive
+      // as an `error` field in the body.
+      if (!res.ok || data.error) {
         setMessages((prev) => [
           ...prev,
           {
