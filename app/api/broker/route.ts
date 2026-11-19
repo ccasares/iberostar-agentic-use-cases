@@ -51,24 +51,39 @@ function extractText(data: unknown): string {
   return "";
 }
 
+// One log line per event, tagged with a per-call id so the request and its
+// response can be matched in `heroku logs`.
+function log(id: string, event: string, data: Record<string, unknown>) {
+  console.log(`[broker] ${id} ${event} ${JSON.stringify(data)}`);
+}
+
 export async function POST(req: NextRequest) {
+  const logId = randomUUID().slice(0, 8);
+  const startedAt = Date.now();
+
+  // Every response returned to the web page goes through here so it is logged.
+  const respond = (payload: Record<string, unknown>, status = 200) => {
+    log(logId, "response", { status, ms: Date.now() - startedAt, body: payload });
+    return NextResponse.json(payload, { status });
+  };
+
+  const rawBody = await req.text();
+  log(logId, "request", { body: rawBody });
+
   let body: BrokerRequestBody;
   try {
-    body = await req.json();
+    body = JSON.parse(rawBody);
   } catch {
-    return NextResponse.json({ error: "Cuerpo de la solicitud no válido" }, { status: 400 });
+    return respond({ error: "Cuerpo de la solicitud no válido" }, 400);
   }
 
   const { brokerUrl, text, apiInstanceId, contextId } = body;
 
   if (!brokerUrl || !/^https?:\/\//i.test(brokerUrl)) {
-    return NextResponse.json(
-      { error: "Se necesita una URL de broker válida." },
-      { status: 400 }
-    );
+    return respond({ error: "Se necesita una URL de broker válida." }, 400);
   }
   if (!text || !text.trim()) {
-    return NextResponse.json({ error: "El texto del mensaje es obligatorio." }, { status: 400 });
+    return respond({ error: "El texto del mensaje es obligatorio." }, 400);
   }
 
   const payload = {
@@ -99,6 +114,7 @@ export async function POST(req: NextRequest) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 110_000);
 
+    log(logId, "broker-request", { url: brokerUrl, headers, payload });
     const res = await fetch(brokerUrl, {
       method: "POST",
       headers,
@@ -108,6 +124,11 @@ export async function POST(req: NextRequest) {
     clearTimeout(timeout);
 
     const raw = await res.text();
+    log(logId, "broker-response", {
+      status: res.status,
+      ms: Date.now() - startedAt,
+      body: raw,
+    });
     let data: unknown;
     try {
       data = JSON.parse(raw);
@@ -116,12 +137,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (!res.ok) {
-      return NextResponse.json(
+      return respond(
         {
           error: `El broker ha respondido con ${res.status} ${res.statusText}`,
           detail: raw?.slice(0, 800),
         },
-        { status: 502 }
+        502
       );
     }
 
@@ -133,12 +154,13 @@ export async function POST(req: NextRequest) {
       contextId ||
       null;
 
-    return NextResponse.json({ reply, contextId: newContextId, raw: data });
+    return respond({ reply, contextId: newContextId, raw: data });
   } catch (err) {
     const message =
       err instanceof Error && err.name === "AbortError"
         ? "Se ha agotado el tiempo de espera de la solicitud al broker."
         : "No se ha podido conectar con el broker. Comprueba la URL y la red.";
-    return NextResponse.json({ error: message }, { status: 502 });
+    log(logId, "broker-error", { error: err instanceof Error ? err.message : String(err) });
+    return respond({ error: message }, 502);
   }
 }
