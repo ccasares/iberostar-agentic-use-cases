@@ -29,18 +29,17 @@ interface BrokerConfig {
   url: string;
 }
 
-// Only this user may view/edit the broker configuration. The configured URL is
-// stored server-side so it applies globally for every visitor of the use case.
-const BROKER_CONFIG_ADMIN = "amir.khan@salesforce.com";
-
 function defaultConfig(): BrokerConfig {
   return { url: "" };
 }
 
 export function BrokerChat({ useCase }: { useCase: UseCase }) {
   const { verifiedEmail } = usePortal();
-  const canConfigure =
-    verifiedEmail.trim().toLowerCase() === BROKER_CONFIG_ADMIN;
+  // Only the users listed in BROKER_CONFIG_ADMIN_EMAIL (server env var) may
+  // view/edit the broker configuration; the server tells us via the GET below.
+  // The configured URL is stored server-side, so it applies globally for every
+  // visitor of the use case.
+  const [canConfigure, setCanConfigure] = useState(false);
   const [config, setConfig] = useState<BrokerConfig>(defaultConfig());
   const [showConfig, setShowConfig] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -61,23 +60,25 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
   // admin) so every visitor can chat with the same broker.
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/broker-config/${useCase.slug}`)
+    const qs = verifiedEmail
+      ? `?email=${encodeURIComponent(verifiedEmail)}`
+      : "";
+    fetch(`/api/broker-config/${useCase.slug}${qs}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (cancelled || editedRef.current) return;
+        if (cancelled) return;
+        const admin = d?.canConfigure === true;
+        setCanConfigure(admin);
+        if (editedRef.current) return;
         const url = d?.config?.url || "";
         setConfig({ url });
-        if (!url && canConfigure) setShowConfig(true);
+        if (!url && admin) setShowConfig(true);
       })
-      .catch(() => {
-        if (!cancelled && !editedRef.current && canConfigure) {
-          setShowConfig(true);
-        }
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [useCase.slug, canConfigure]);
+  }, [useCase.slug, verifiedEmail]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({

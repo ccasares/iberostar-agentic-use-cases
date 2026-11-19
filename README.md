@@ -62,7 +62,7 @@ and the top-level `../README.md`, and writes `lib/use-cases.json`.
 | `ADMIN_EMAIL_DOMAIN` | Domain whose users see engagement/sign-in activity |
 | `NEXT_PUBLIC_ADMIN_EMAIL_DOMAIN` | Client-side mirror of `ADMIN_EMAIL_DOMAIN` |
 | `TRACKED_EMAIL_DOMAIN` | Domain whose viewer activity is surfaced to admins |
-| `BROKER_CONFIG_ADMIN_EMAIL` | Single user allowed to configure broker URLs |
+| `BROKER_CONFIG_ADMIN_EMAIL` | Comma-separated list of emails allowed to configure broker URLs (e.g. `a@x.com,b@y.com`) |
 | `STATS_DIR` | Optional dir for likes/views + broker config JSON (default `./.data`) |
 | `BROKER_CONFIG_JSON` | Optional JSON map of broker URLs that persists across deploys and is shared by all instances. UI-set URLs (on a durable `STATS_DIR`) override it. |
 

@@ -32,13 +32,16 @@ export function isAdminEmail(email: string): boolean {
   return emailDomain(email) === ADMIN_DOMAIN;
 }
 
-// The single user allowed to configure brokers (applied globally per use case).
-export const BROKER_CONFIG_ADMIN_EMAIL = (
+// Users allowed to configure brokers (applied globally per use case).
+// BROKER_CONFIG_ADMIN_EMAIL is a comma-separated list of email addresses.
+export const BROKER_CONFIG_ADMIN_EMAILS: string[] = (
   process.env.BROKER_CONFIG_ADMIN_EMAIL || "admin@iberostar.com"
 )
-  .trim()
-  .toLowerCase();
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
 
 export function isBrokerConfigAdmin(email: string): boolean {
-  return (email || "").trim().toLowerCase() === BROKER_CONFIG_ADMIN_EMAIL;
+  const normalized = (email || "").trim().toLowerCase();
+  return normalized !== "" && BROKER_CONFIG_ADMIN_EMAILS.includes(normalized);
 }
