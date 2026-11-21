@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { usePortal } from "@/components/portal-gate";
 import { cn } from "@/lib/utils";
 import type { ExampleQuery, UseCase } from "@/lib/types";
+import { SIMULATED_CONVERSATIONS } from "@/lib/simulated-conversations";
 import {
   Bot,
   Send,
@@ -18,6 +19,8 @@ import {
   Loader2,
   Sparkles,
   ChevronDown,
+  Play,
+  ArrowRight,
 } from "lucide-react";
 
 interface ChatMessage {
@@ -55,6 +58,60 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
   // their in-progress input.
   const editedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Scripted conversation replay ("Simular conversación").
+  const simTurns = SIMULATED_CONVERSATIONS[useCase.slug];
+  // Index of the next turn to play; null when no simulation is running.
+  const [simNext, setSimNext] = useState<number | null>(null);
+  const [simPlaying, setSimPlaying] = useState(false);
+  // Bumped on every (re)start/unmount so stale timers from a previous run stop.
+  const simRunRef = useRef(0);
+
+  useEffect(() => () => void simRunRef.current++, []);
+
+  const wait = (ms: number, run: number) =>
+    new Promise<boolean>((resolve) =>
+      setTimeout(() => resolve(simRunRef.current === run), ms)
+    );
+
+  const playTurn = async (idx: number, run: number) => {
+    const turn = simTurns?.[idx];
+    if (!turn) return;
+    setSimPlaying(true);
+    setInput("");
+    // Type the prompt into the message box, then "send" it.
+    const charMs = Math.max(8, Math.min(35, 3500 / turn.prompt.length));
+    for (let i = 1; i <= turn.prompt.length; i++) {
+      if (!(await wait(charMs, run))) return;
+      setInput(turn.prompt.slice(0, i));
+    }
+    if (!(await wait(450, run))) return;
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", text: turn.prompt }]);
+    setSending(true);
+    if (!(await wait(turn.thinkMs, run))) return;
+    setSending(false);
+    setMessages((prev) => [...prev, { role: "broker", text: turn.reply }]);
+    setSimPlaying(false);
+    setSimNext(idx + 1 < simTurns.length ? idx + 1 : null);
+  };
+
+  const startSimulation = () => {
+    const run = ++simRunRef.current;
+    setMessages([]);
+    setInput("");
+    setSending(false);
+    setContextId(null);
+    setSimNext(null);
+    playTurn(0, run);
+  };
+
+  const continueSimulation = () => {
+    if (simNext === null) return;
+    const idx = simNext;
+    setSimNext(null);
+    playTurn(idx, simRunRef.current);
+  };
 
   // Load the globally-configured broker URL for this use case (set by the
   // admin) so every visitor can chat with the same broker.
@@ -117,7 +174,10 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
 
   const send = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || sending) return;
+    if (!trimmed || sending || simPlaying) return;
+    // Typing a real message ends any scripted replay.
+    simRunRef.current++;
+    setSimNext(null);
     if (!config.url) {
       if (canConfigure) {
         setShowConfig(true);
@@ -204,10 +264,10 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
     setStepIdx(0);
     const id = setInterval(
       () => setStepIdx((i) => (i + 1) % orchestrationSteps.length),
-      8000
+      simPlaying ? 2500 : 8000
     );
     return () => clearInterval(id);
-  }, [sending, orchestrationSteps.length]);
+  }, [sending, simPlaying, orchestrationSteps.length]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -259,6 +319,20 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
         )}
       </div>
       )}
+
+      {simTurns?.length ? (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={startSimulation}
+            disabled={simPlaying}
+          >
+            <Play className="size-4 text-primary" />
+            Simular conversación
+          </Button>
+        </div>
+      ) : null}
 
       {/* Chat window */}
       <div className="flex h-[460px] flex-col rounded-xl border border-border bg-card">
@@ -346,6 +420,15 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
               </div>
             </div>
           )}
+
+          {simNext !== null && !simPlaying && (
+            <div className="flex justify-end">
+              <Button type="button" size="sm" onClick={continueSimulation}>
+                Continuar
+                <ArrowRight className="size-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="border-t border-border p-3">
@@ -400,6 +483,7 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              readOnly={simPlaying}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -412,7 +496,7 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
             />
             <Button
               onClick={() => send(input)}
-              disabled={!input.trim() || sending}
+              disabled={!input.trim() || sending || simPlaying}
               size="icon-lg"
             >
               {sending ? (
