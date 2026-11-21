@@ -35,8 +35,6 @@ export const SIMULATED_CONVERSATIONS: Record<string, SimulatedTurn[]> = {
       thinkMs: 11000,
       reply: `Perfecto. He confirmado el upgrade a **Suite Swim-Up** para su reserva en Iberostar Selection Paraíso Maya.
 
-Upgrade confirmado (simulación)
-
 **Detalles de la reserva actualizada**
 
 *   **Número de reserva:** IBS-7741203
@@ -73,7 +71,7 @@ Por seguridad, no es necesario que me envíe fotografías del pasaporte ni su n�
 
 Puede acceder desde este enlace oficial:
 
-[Gestionar reserva y acceder al check-in online de Iberostar](https://www.iberostar.com/area-privada/sin-login/new/?utm_source=chatgpt.com)
+[Gestionar reserva y acceder al check-in online de Iberostar](https://www.iberostar.com/area-privada/sin-login/new/)
 
 Una vez completada la documentación, el hotel podrá validar el registro. A su llegada, podrá dirigirse al mostrador de check-in prioritario para recoger la llave de la habitación.
 

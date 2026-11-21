@@ -80,9 +80,10 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
     setSimPlaying(true);
     setInput("");
     // Type the prompt into the message box, then "send" it.
-    const charMs = Math.max(8, Math.min(35, 3500 / turn.prompt.length));
-    for (let i = 1; i <= turn.prompt.length; i++) {
-      if (!(await wait(charMs, run))) return;
+    // ~1s total regardless of length: several characters per 16ms frame.
+    const step = Math.max(1, Math.ceil(turn.prompt.length / 60));
+    for (let i = step; i < turn.prompt.length + step; i += step) {
+      if (!(await wait(16, run))) return;
       setInput(turn.prompt.slice(0, i));
     }
     if (!(await wait(450, run))) return;
@@ -329,7 +330,7 @@ export function BrokerChat({ useCase }: { useCase: UseCase }) {
             disabled={simPlaying}
           >
             <Play className="size-4 text-primary" />
-            Simular conversación
+            Play
           </Button>
         </div>
       ) : null}
